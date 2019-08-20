@@ -5,6 +5,8 @@ import torch
 from torch.utils import data
 from torchvision.transforms import ToTensor
 
+from .exceptions import DirEmptyError
+
 
 # plants are indexed left to right, top to bottom
 positions = [
@@ -31,10 +33,10 @@ class LWIR(data.Dataset):
     def __init__(self, root_dir: str, img_len: int, transform=None):
         """
         :param root_dir: path to the Exp1 directory
+        :param img_len: the length of the images in the dataset
         :param transform: optional transform to be applied on a sample
         """
         self.lwir_dirs = sorted(glob.glob(root_dir + '/*LWIR'))
-        self.root_dir = root_dir
         self.img_len = img_len
         self.transform = transform
 
@@ -48,10 +50,9 @@ class LWIR(data.Dataset):
         for lwir_dir in self.lwir_dirs:
             try:
                 image = self._get_image(lwir_dir, idx)
+                tensors.append(to_tensor(image))
             except DirEmptyError:
                 pass
-
-            tensors.append(to_tensor(image))
 
         return torch.cat(tensors)
 
@@ -73,7 +74,3 @@ class LWIR(data.Dataset):
         image = image.crop((left, top, right, bottom))
 
         return image
-
-
-class DirEmptyError(Exception):
-    pass

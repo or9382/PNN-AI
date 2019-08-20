@@ -1,0 +1,3 @@
+
+class DirEmptyError(Exception):
+    pass
