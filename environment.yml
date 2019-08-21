@@ -1,0 +1,8 @@
+name: PNN
+dependencies:
+  - python=3.6
+  - pytorch
+  - cudatoolkit=9.0
+  - pip:
+    - torchvision
+    - astar-tcn --no-dependencies
