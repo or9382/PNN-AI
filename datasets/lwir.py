@@ -30,34 +30,58 @@ class LWIR(data.Dataset):
     The LWIR data from Exp0.
     """
 
-    def __init__(self, root_dir: str, img_len=224, transform=None):
+    def __init__(self, root_dir: str, img_len=224, split_cycle=7, transform=None):
         """
         :param root_dir: path to the Exp1 directory
         :param img_len: the length that the images will be resized to
+        :param split_cycle: amount of days the data will be split by
         :param transform: optional transform to be applied on a sample
         """
+        self.root_dir = root_dir
         self.lwir_dirs = sorted(glob.glob(root_dir + '/*LWIR'))
+
         self.plant_crop_len = 70
         self.out_len = img_len
+        self.split_cycle = split_cycle
+
         self.transform = transform
 
     def __len__(self):
-        return len(positions)
+        return len(positions) * self.split_cycle
 
     def __getitem__(self, idx):
-        tensors = []
+        if idx > len(self):
+            raise IndexError()
+
+        # the day in the cycle this sample belongs to
+        cycle_day = idx // len(positions)
+        plant = idx % len(positions)
+
         to_tensor = ToTensor()
 
+        tensors = []
+        cur_day = self._get_day(self.lwir_dirs[0])
+
         for lwir_dir in self.lwir_dirs:
+            # update the current day when it changes
+            if cur_day != self._get_day(lwir_dir):
+                cur_day = self._get_day(lwir_dir)
+                cycle_day -= 1
+
+            # get the image only every split_cycle days
+            if not cycle_day % self.split_cycle == 0:
+                continue
+
             try:
-                image = self._get_image(lwir_dir, idx)
+                image = self._get_image(lwir_dir, plant)
                 tensors.append(to_tensor(image))
             except DirEmptyError:
                 pass
 
         image = torch.cat(tensors)
 
-        sample = {'image': image, 'position': positions[idx]}
+        # TODO: return the actual phenotype of the plant
+        sample = {'image': image, 'phenotype': None, 'position': positions[plant]}
 
         if self.transform:
             sample = self.transform(sample)
@@ -83,3 +107,8 @@ class LWIR(data.Dataset):
         image = image.resize((self.out_len, self.out_len))
 
         return image
+
+    # returns the date (day) of the directory
+    def _get_day(self, lwir_dir):
+        lwir_dir = lwir_dir[len(self.root_dir)+1:]
+        return lwir_dir.split('_')[2]
