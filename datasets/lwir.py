@@ -30,14 +30,15 @@ class LWIR(data.Dataset):
     The LWIR data from Exp0.
     """
 
-    def __init__(self, root_dir: str, img_len: int, transform=None):
+    def __init__(self, root_dir: str, img_len=224, transform=None):
         """
         :param root_dir: path to the Exp1 directory
-        :param img_len: the length of the images in the dataset
+        :param img_len: the length that the images will be resized to
         :param transform: optional transform to be applied on a sample
         """
         self.lwir_dirs = sorted(glob.glob(root_dir + '/*LWIR'))
-        self.img_len = img_len
+        self.plant_crop_len = 70
+        self.out_len = img_len
         self.transform = transform
 
     def __len__(self):
@@ -66,10 +67,10 @@ class LWIR(data.Dataset):
     def _get_image(self, lwir_dir, plant_idx):
         pos = positions[plant_idx]
 
-        left = pos[0] - self.img_len//2
-        right = pos[0] + self.img_len//2
-        top = pos[1] - self.img_len//2
-        bottom = pos[1] + self.img_len//2
+        left = pos[0] - self.plant_crop_len // 2
+        right = pos[0] + self.plant_crop_len // 2
+        top = pos[1] - self.plant_crop_len // 2
+        bottom = pos[1] + self.plant_crop_len // 2
 
         image_path = glob.glob(lwir_dir + '/*.tiff')
         if len(image_path) == 0:
@@ -79,5 +80,6 @@ class LWIR(data.Dataset):
 
         image = Image.open(image_path)
         image = image.crop((left, top, right, bottom))
+        image = image.resize((self.out_len, self.out_len))
 
         return image

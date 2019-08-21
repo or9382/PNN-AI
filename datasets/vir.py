@@ -84,42 +84,42 @@ class VIR(data.Dataset):
         image_path = image_path[0]
 
         raw_data = open(image_path, 'rb').read()
-        image = Image.frombytes('L', img_size, raw_data)
+        image = Image.frombytes('LA', img_size, raw_data)
         image = image.crop((left, top, right, bottom))
 
         return image
 
 
 class VIR577nm(VIR):
-    def __init__(self, root_dir: str, img_len: int, transform=None):
+    def __init__(self, root_dir: str, img_len=448, transform=None):
         super().__init__(root_dir, img_len, transform)
 
         self.vir_type = "577nm"
 
 
 class VIR692nm(VIR):
-    def __init__(self, root_dir: str, img_len: int, transform=None):
+    def __init__(self, root_dir: str, img_len=448, transform=None):
         super().__init__(root_dir, img_len, transform)
 
         self.vir_type = "692nm"
 
 
 class VIR732nm(VIR):
-    def __init__(self, root_dir: str, img_len: int, transform=None):
+    def __init__(self, root_dir: str, img_len=448, transform=None):
         super().__init__(root_dir, img_len, transform)
 
         self.vir_type = "732nm"
 
 
 class VIR970nm(VIR):
-    def __init__(self, root_dir: str, img_len: int, transform=None):
+    def __init__(self, root_dir: str, img_len=448, transform=None):
         super().__init__(root_dir, img_len, transform)
 
         self.vir_type = "970nm"
 
 
 class VIRPolar(VIR):
-    def __init__(self, root_dir: str, img_len: int, transform=None):
+    def __init__(self, root_dir: str, img_len=448, transform=None):
         super().__init__(root_dir, img_len, transform)
 
         self.vir_type = "Polarizer"
