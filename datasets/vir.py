@@ -5,7 +5,7 @@ import torch
 from torch.utils import data
 from torchvision.transforms import ToTensor
 
-from .exceptions import DirEmptyError
+from .exceptions import *
 
 
 # plants are indexed left to right, top to bottom
@@ -23,6 +23,8 @@ positions = [
     (1386, 2582), (1821, 2588), (2219, 2597), (2642, 2607),
     (3303, 2588), (3665, 2615), (4062, 2574), (4463, 2547)
 ]
+
+img_size = (5472, 3648)
 
 
 class VIR(data.Dataset):
@@ -58,7 +60,14 @@ class VIR(data.Dataset):
             except DirEmptyError:
                 pass
 
-        return torch.cat(tensors)
+        image = torch.cat(tensors)
+
+        sample = {'image': image, 'position': positions[idx]}
+
+        if self.transform:
+            sample = self.transform(sample)
+
+        return sample
 
     def _get_image(self, vir_dir, plant_idx):
         pos = positions[plant_idx]
@@ -74,7 +83,8 @@ class VIR(data.Dataset):
 
         image_path = image_path[0]
 
-        image = Image.open(image_path)
+        raw_data = open(image_path, 'rb').read()
+        image = Image.frombytes('L', img_size, raw_data)
         image = image.crop((left, top, right, bottom))
 
         return image

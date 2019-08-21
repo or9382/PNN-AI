@@ -5,7 +5,7 @@ import torch
 from torch.utils import data
 from torchvision.transforms import ToTensor
 
-from .exceptions import DirEmptyError
+from .exceptions import *
 
 
 # plants are indexed left to right, top to bottom
@@ -54,7 +54,14 @@ class LWIR(data.Dataset):
             except DirEmptyError:
                 pass
 
-        return torch.cat(tensors)
+        image = torch.cat(tensors)
+
+        sample = {'image': image, 'position': positions[idx]}
+
+        if self.transform:
+            sample = self.transform(sample)
+
+        return sample
 
     def _get_image(self, lwir_dir, plant_idx):
         pos = positions[plant_idx]
