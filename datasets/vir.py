@@ -32,14 +32,19 @@ class VIR(data.Dataset):
     An abstract class. The parent class of all VIRs classes.
     """
 
-    def __init__(self, root_dir: str, img_len: int, transform=None):
+    def __init__(self, root_dir: str, img_len: int, split_cycle=7, transform=None):
         """
         :param root_dir: path to the Exp1 directory
         :param img_len: the length of the images in the dataset
+        :param split_cycle: amount of days the data will be split by
         :param transform: optional transform to be applied on a sample
         """
+        self.root_dir = root_dir
         self.vir_dirs = sorted(glob.glob(root_dir + '/*VIR_day'))
+
         self.img_len = img_len
+        self.split_cycle = split_cycle
+
         self.transform = transform
 
         # the type of the VIR images
@@ -47,22 +52,41 @@ class VIR(data.Dataset):
         self.vir_type = None
 
     def __len__(self):
-        return len(positions)
+        return len(positions) * self.split_cycle
 
     def __getitem__(self, idx):
-        tensors = []
+        if idx > len(self):
+            raise IndexError()
+
+        # the day in the cycle this sample belongs to
+        cycle_day = idx // len(positions)
+        plant = idx % len(positions)
+
         to_tensor = ToTensor()
 
+        tensors = []
+        cur_day = self._get_day(self.vir_dirs[0])
+
         for vir_dir in self.vir_dirs:
+            # update the current day when it changes
+            if cur_day != self._get_day(vir_dir):
+                cur_day = self._get_day(vir_dir)
+                cycle_day -= 1
+
+            # get the image only every split_cycle days
+            if not cycle_day % self.split_cycle == 0:
+                continue
+
             try:
-                image = self._get_image(vir_dir, idx)
+                image = self._get_image(vir_dir, plant)
                 tensors.append(to_tensor(image))
             except DirEmptyError:
                 pass
 
         image = torch.cat(tensors)
 
-        sample = {'image': image, 'position': positions[idx]}
+        # TODO: return the actual phenotype of the plant
+        sample = {'image': image, 'phenotype': None, 'position': positions[plant]}
 
         if self.transform:
             sample = self.transform(sample)
@@ -89,37 +113,42 @@ class VIR(data.Dataset):
 
         return image
 
+    # returns the date (day) of the directory
+    def _get_day(self, lwir_dir):
+        lwir_dir = lwir_dir[len(self.root_dir) + 1:]
+        return lwir_dir.split('_')[2]
+
 
 class VIR577nm(VIR):
-    def __init__(self, root_dir: str, img_len=448, transform=None):
-        super().__init__(root_dir, img_len, transform)
+    def __init__(self, root_dir: str, img_len=448, split_cycle=7, transform=None):
+        super().__init__(root_dir, img_len, split_cycle, transform)
 
         self.vir_type = "577nm"
 
 
 class VIR692nm(VIR):
-    def __init__(self, root_dir: str, img_len=448, transform=None):
-        super().__init__(root_dir, img_len, transform)
+    def __init__(self, root_dir: str, img_len=448, split_cycle=7, transform=None):
+        super().__init__(root_dir, img_len, split_cycle, transform)
 
         self.vir_type = "692nm"
 
 
 class VIR732nm(VIR):
-    def __init__(self, root_dir: str, img_len=448, transform=None):
-        super().__init__(root_dir, img_len, transform)
+    def __init__(self, root_dir: str, img_len=448, split_cycle=7, transform=None):
+        super().__init__(root_dir, img_len, split_cycle, transform)
 
         self.vir_type = "732nm"
 
 
 class VIR970nm(VIR):
-    def __init__(self, root_dir: str, img_len=448, transform=None):
-        super().__init__(root_dir, img_len, transform)
+    def __init__(self, root_dir: str, img_len=448, split_cycle=7, transform=None):
+        super().__init__(root_dir, img_len, split_cycle, transform)
 
         self.vir_type = "970nm"
 
 
 class VIRPolar(VIR):
-    def __init__(self, root_dir: str, img_len=448, transform=None):
-        super().__init__(root_dir, img_len, transform)
+    def __init__(self, root_dir: str, img_len=448, split_cycle=7, transform=None):
+        super().__init__(root_dir, img_len, split_cycle, transform)
 
         self.vir_type = "Polarizer"
