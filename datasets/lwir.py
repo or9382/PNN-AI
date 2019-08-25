@@ -5,6 +5,7 @@ import torch
 from torch.utils import data
 from torchvision.transforms import ToTensor
 
+from .labels import labels
 from .exceptions import *
 
 
@@ -80,8 +81,7 @@ class LWIR(data.Dataset):
 
         image = torch.cat(tensors)
 
-        # TODO: return the actual phenotype of the plant
-        sample = {'image': image, 'phenotype': None, 'position': positions[plant]}
+        sample = {'image': image, 'label': labels[plant], 'position': positions[plant]}
 
         if self.transform:
             sample = self.transform(sample)
