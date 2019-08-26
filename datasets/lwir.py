@@ -33,7 +33,7 @@ class LWIR(data.Dataset):
 
     def __init__(self, root_dir: str, img_len=224, split_cycle=7, transform=None):
         """
-        :param root_dir: path to the Exp1 directory
+        :param root_dir: path to the Exp0 directory
         :param img_len: the length that the images will be resized to
         :param split_cycle: amount of days the data will be split by
         :param transform: optional transform to be applied on a sample
@@ -81,7 +81,8 @@ class LWIR(data.Dataset):
 
         image = torch.cat(tensors)
 
-        sample = {'image': image, 'label': labels[plant], 'position': positions[plant]}
+        sample = {'image': image, 'label': labels[plant],
+                  'position': positions[plant], 'plant': plant}
 
         if self.transform:
             sample = self.transform(sample)

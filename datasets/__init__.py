@@ -1,5 +1,6 @@
 
 from .lwir import LWIR
 from .vir import *
+from .modalities import Modalities
 
-__all__ = ['LWIR', 'VIR577nm', 'VIR692nm', 'VIR732nm', 'VIR970nm', 'VIRPolar']
+__all__ = ['LWIR', 'VIR577nm', 'VIR692nm', 'VIR732nm', 'VIR970nm', 'VIRPolar', 'Modalities']
