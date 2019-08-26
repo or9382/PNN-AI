@@ -111,6 +111,13 @@ class PlantFeatureExtractor(nn.Module):
         self.final_feat_extractor = nn.Sequential(nn.Linear(128 * len(self.mods), embedding_size), nn.ReLU())
 
     def forward(self, **x: torch.Tensor):
+        """
+
+        :param x: input of type mod=x_mod for each modality where each x_mod is of shape
+                    (NxT_modxC_modxH_modxW_mod),
+                    where the batch size N is the same over all mods and others are mod-specific
+        :return: a feature vector of shape (Nxembedding_size)
+        """
         # make sure that all of the extractor mods and only them are used
         assert set(self.mods) == set(x.keys())
 
