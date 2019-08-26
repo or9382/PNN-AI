@@ -33,15 +33,18 @@ class VIR(data.Dataset):
     An abstract class. The parent class of all VIRs classes.
     """
 
-    def __init__(self, root_dir: str, img_len: int, split_cycle=7, transform=None):
+    def __init__(self, root_dir: str, img_len: int, split_cycle=7, max_len=None, transform=None):
         """
         :param root_dir: path to the Exp0 directory
         :param img_len: the length of the images in the dataset
         :param split_cycle: amount of days the data will be split by
         :param transform: optional transform to be applied on a sample
         """
+        if max_len is None:
+            max_len = 10000
+
         self.root_dir = root_dir
-        self.vir_dirs = sorted(glob.glob(root_dir + '/*VIR_day'))
+        self.vir_dirs = sorted(glob.glob(root_dir + '/*VIR_day'))[:max_len]
 
         self.img_len = img_len
         self.split_cycle = split_cycle
@@ -121,35 +124,35 @@ class VIR(data.Dataset):
 
 
 class VIR577nm(VIR):
-    def __init__(self, root_dir: str, img_len=448, split_cycle=7, transform=None):
-        super().__init__(root_dir, img_len, split_cycle, transform)
+    def __init__(self, root_dir: str, img_len=448, split_cycle=7, max_len=None, transform=None):
+        super().__init__(root_dir, img_len, split_cycle, max_len, transform)
 
         self.vir_type = "577nm"
 
 
 class VIR692nm(VIR):
-    def __init__(self, root_dir: str, img_len=448, split_cycle=7, transform=None):
-        super().__init__(root_dir, img_len, split_cycle, transform)
+    def __init__(self, root_dir: str, img_len=448, split_cycle=7, max_len=None, transform=None):
+        super().__init__(root_dir, img_len, split_cycle, max_len, transform)
 
         self.vir_type = "692nm"
 
 
 class VIR732nm(VIR):
-    def __init__(self, root_dir: str, img_len=448, split_cycle=7, transform=None):
-        super().__init__(root_dir, img_len, split_cycle, transform)
+    def __init__(self, root_dir: str, img_len=448, split_cycle=7, max_len=None, transform=None):
+        super().__init__(root_dir, img_len, split_cycle, max_len, transform)
 
         self.vir_type = "732nm"
 
 
 class VIR970nm(VIR):
-    def __init__(self, root_dir: str, img_len=448, split_cycle=7, transform=None):
-        super().__init__(root_dir, img_len, split_cycle, transform)
+    def __init__(self, root_dir: str, img_len=448, split_cycle=7, max_len=None, transform=None):
+        super().__init__(root_dir, img_len, split_cycle, max_len, transform)
 
         self.vir_type = "970nm"
 
 
 class VIRPolar(VIR):
-    def __init__(self, root_dir: str, img_len=448, split_cycle=7, transform=None):
-        super().__init__(root_dir, img_len, split_cycle, transform)
+    def __init__(self, root_dir: str, img_len=448, split_cycle=7, max_len=None, transform=None):
+        super().__init__(root_dir, img_len, split_cycle, max_len, transform)
 
         self.vir_type = "Polarizer"

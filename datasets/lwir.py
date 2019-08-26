@@ -31,15 +31,19 @@ class LWIR(data.Dataset):
     The LWIR data from Exp0.
     """
 
-    def __init__(self, root_dir: str, img_len=224, split_cycle=7, transform=None):
+    def __init__(self, root_dir: str, img_len=224, split_cycle=7, max_len=None, transform=None):
         """
         :param root_dir: path to the Exp0 directory
         :param img_len: the length that the images will be resized to
         :param split_cycle: amount of days the data will be split by
+        :param max_len: the max amount of images to use; if None - no limit
         :param transform: optional transform to be applied on a sample
         """
+        if max_len is None:
+            max_len = 10000
+
         self.root_dir = root_dir
-        self.lwir_dirs = sorted(glob.glob(root_dir + '/*LWIR'))
+        self.lwir_dirs = sorted(glob.glob(root_dir + '/*LWIR'))[:max_len]
 
         self.plant_crop_len = 70
         self.out_len = img_len
