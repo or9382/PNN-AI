@@ -37,7 +37,7 @@ class ImageFeatureExtractor(nn.Module):
         """
 
         :param x: a batch of image sequences of either size (NxTxCxHxW) or the squeezed size (NxTxHxW)
-        :return: a batch of feature vectors for each image of size (NxTx128)
+        :return: a batch of feature vectors for each image of size (NxTx2048)
         """
         # if the image is greyscale convert it to RGB
         if len(x.shape) < 5 or len(x.shape) >= 5 and x.shape[-3] == 1:
@@ -65,8 +65,8 @@ class ModalityFeatureExtractor(TemporalConvNet):
     def forward(self, x: torch.Tensor):
         """
 
-        :param x: input tensor of size (NxTxD),
-                where N is the batch size, T is the sequence length and D is the input embedding dim
+        :param x: input tensor of size (NxTx2048),
+                where N is the batch size, T is the sequence length and 2048 is the input embedding dim
         :return: tensor of size (N x T x embedding_size) where out[:,t,:] is the output given all values up to time t
         """
 
@@ -80,7 +80,7 @@ class ModalityFeatureExtractor(TemporalConvNet):
 
 
 class PlantFeatureExtractor(nn.Module):
-    def __init__(self, *default_mods: str, embedding_size: int = 128, **param_mods: Dict[str, Union[int, float]]):
+    def __init__(self, *default_mods: str, embedding_size: int = 512, **param_mods: Dict[str, Union[int, float]]):
         super().__init__()
 
         # make sure that no modality is appears as both default and with params
