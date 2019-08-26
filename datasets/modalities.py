@@ -1,5 +1,6 @@
 
 from torch.utils import data
+from typing import Dict
 
 from . import LWIR, VIR577nm, VIR692nm, VIR732nm, VIR970nm, VIRPolar
 from .labels import labels
@@ -20,23 +21,25 @@ class Modalities(data.Dataset):
     A dataset class that lets the user decides which modalities to use.
     """
 
-    def __init__(self, root_dir: str, img_len: int, modalities=None, split_cycle=7, transform=None):
+    def __init__(self, root_dir: str, *mods: str, split_cycle=7, transform=None,
+                 **k_mods: Dict):
         """
         :param root_dir: path to the Exp0 directory
-        :param img_len: the length of the images in the dataset
-        :param modalities: the modalities of the dataset; default: all.
+        :param mods: modalities to be in the dataset, initialized with default arguments
         :param split_cycle: amount of days the data will be split by
         :param transform: optional transform to be applied on a sample
+        :param k_mods: modalities to be in the dataset, as dictionaries of initialization arguments
         """
-        if modalities is None:
-            modalities = mod_map.keys()
+        if len(mods) + len(k_mods) == 0:
+            mods = mod_map.keys()
 
-        if len(modalities) == 0:
-            raise ValueError('should contain at least one modality')
+        self.modalities = dict()
 
-        self.modalities = {
-            mod: mod_map[mod](root_dir, img_len, split_cycle) for mod in modalities
-        }
+        for mod in mods:
+            self.modalities[mod] = mod_map[mod](root_dir=root_dir, split_cycle=split_cycle)
+
+        for mod in k_mods:
+            self.modalities[mod] = mod_map[mod](root_dir=root_dir, split_cycle=split_cycle, **k_mods[mod])
 
         self.transform = transform
 
