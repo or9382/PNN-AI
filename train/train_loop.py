@@ -1,7 +1,9 @@
+
 from datetime import datetime
 import torch
 from torch import nn, optim
 from torch.utils import data
+from torchvision.transforms import Normalize
 
 from datasets import Modalities, classes
 from model import LinearWrapper, PlantFeatureExtractor as FeatureExtractor
@@ -20,12 +22,12 @@ vir_max_len = 16
 domain_adapt_l = 0.1
 
 modalities = {
-    'lwir': {'max_len': lwir_max_len},
-    '577nm': {'max_len': vir_max_len},
-    '692nm': {'max_len': vir_max_len},
-    '732nm': {'max_len': vir_max_len},
-    '970nm': {'max_len': vir_max_len},
-    'polar': {'max_len': vir_max_len}
+    'lwir': {'max_len': lwir_max_len, 'transform': Normalize([21361.], [481.])},
+    '577nm': {'max_len': vir_max_len, 'transform': Normalize([.348], [.247])},
+    '692nm': {'max_len': vir_max_len, 'transform': Normalize([.366], [.243])},
+    '732nm': {'max_len': vir_max_len, 'transform': Normalize([.459], [.247])},
+    '970nm': {'max_len': vir_max_len, 'transform': Normalize([.285], [.271])},
+    'polar': {'max_len': vir_max_len, 'transform': Normalize([.439], [.235])}
 }
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
