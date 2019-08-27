@@ -4,7 +4,7 @@ import glob
 from PIL import Image
 import torch
 from torch.utils import data
-from torchvision.transforms import ToTensor
+from torchvision import transforms
 
 from .labels import labels
 from .exceptions import *
@@ -41,7 +41,7 @@ class VIR(data.Dataset):
         :param root_dir: path to the Exp0 directory
         :param img_len: the length of the images in the dataset
         :param split_cycle: amount of days the data will be split by
-        :param transform: optional transform to be applied on a sample
+        :param transform: optional transform to be applied on each frame
         """
         if max_len is None:
             max_len = 10000
@@ -54,7 +54,10 @@ class VIR(data.Dataset):
         self.split_cycle = split_cycle
         self.max_len = max_len
 
-        self.transform = transform
+        if transform is None:
+            self.transform = transforms.Compose([])
+        else:
+            self.transform = transform
 
         # the type of the VIR images
         # to be assigned by inheriting classes
@@ -83,7 +86,7 @@ class VIR(data.Dataset):
         cycle_day = idx // len(positions)
         plant = idx % len(positions)
 
-        to_tensor = ToTensor()
+        to_tensor = transforms.ToTensor()
 
         tensors = []
         cur_day = self._get_day(self.vir_dirs[0])
@@ -100,7 +103,8 @@ class VIR(data.Dataset):
 
             try:
                 image = self._get_image(vir_dir, plant)
-                tensors.append(to_tensor(image))
+                tensor = to_tensor(image).float()
+                tensors.append(self.transform(tensor))
             except DirEmptyError:
                 pass
 
