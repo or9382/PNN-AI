@@ -33,7 +33,7 @@ criterion = nn.CrossEntropyLoss()
 
 label_opt = optim.adam.Adam(label_cls.parameters(), lr=label_lr)
 plant_opt = optim.adam.Adam(plant_cls.parameters(), lr=plant_lr)
-ext_opt = optim.adam.Adam(plant_cls.parameters(), lr=extractor_lr)
+ext_opt = optim.adam.Adam(feat_ext.parameters(), lr=extractor_lr)
 
 for epoch in range(epochs):
     print(f"epoch {epoch + 1} - ", end='')
