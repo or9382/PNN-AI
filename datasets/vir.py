@@ -1,4 +1,5 @@
 
+from datetime import datetime
 import glob
 from PIL import Image
 import torch
@@ -33,7 +34,9 @@ class VIR(data.Dataset):
     An abstract class. The parent class of all VIRs classes.
     """
 
-    def __init__(self, root_dir: str, img_len: int, split_cycle=7, max_len=None, transform=None):
+    def __init__(self, root_dir: str, img_len: int, split_cycle=7,
+                 start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
+                 max_len=None, transform=None):
         """
         :param root_dir: path to the Exp0 directory
         :param img_len: the length of the images in the dataset
@@ -44,7 +47,8 @@ class VIR(data.Dataset):
             max_len = 10000
 
         self.root_dir = root_dir
-        self.vir_dirs = sorted(glob.glob(root_dir + '/*VIR_day'))[:max_len]
+        self.vir_dirs = sorted(glob.glob(root_dir + '/*VIR_day'))
+        self.vir_dirs = self._filter_dirs(self.vir_dirs, start_date, end_date, max_len)
 
         self.img_len = img_len
         self.split_cycle = split_cycle
@@ -54,6 +58,18 @@ class VIR(data.Dataset):
         # the type of the VIR images
         # to be assigned by inheriting classes
         self.vir_type = None
+
+    def _filter_dirs(self, dirs, start_date, end_date, max_len):
+        format = f"{self.root_dir}/%Y_%m_%d_%H_%M_%S_VIR_day"
+
+        filtered = []
+        for dir in dirs:
+            date = datetime.strptime(dir, format)
+
+            if start_date <= date <= end_date:
+                filtered.append(dir)
+
+        return filtered[:max_len]
 
     def __len__(self):
         return len(positions) * self.split_cycle
@@ -124,35 +140,45 @@ class VIR(data.Dataset):
 
 
 class VIR577nm(VIR):
-    def __init__(self, root_dir: str, img_len=448, split_cycle=7, max_len=None, transform=None):
-        super().__init__(root_dir, img_len, split_cycle, max_len, transform)
+    def __init__(self, root_dir: str, img_len=448, split_cycle=7,
+                 start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
+                 max_len=None, transform=None):
+        super().__init__(root_dir, img_len, split_cycle, start_date, end_date, max_len, transform)
 
         self.vir_type = "577nm"
 
 
 class VIR692nm(VIR):
-    def __init__(self, root_dir: str, img_len=448, split_cycle=7, max_len=None, transform=None):
-        super().__init__(root_dir, img_len, split_cycle, max_len, transform)
+    def __init__(self, root_dir: str, img_len=448, split_cycle=7,
+                 start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
+                 max_len=None, transform=None):
+        super().__init__(root_dir, img_len, split_cycle, start_date, end_date, max_len, transform)
 
         self.vir_type = "692nm"
 
 
 class VIR732nm(VIR):
-    def __init__(self, root_dir: str, img_len=448, split_cycle=7, max_len=None, transform=None):
-        super().__init__(root_dir, img_len, split_cycle, max_len, transform)
+    def __init__(self, root_dir: str, img_len=448, split_cycle=7,
+                 start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
+                 max_len=None, transform=None):
+        super().__init__(root_dir, img_len, split_cycle, start_date, end_date, max_len, transform)
 
         self.vir_type = "732nm"
 
 
 class VIR970nm(VIR):
-    def __init__(self, root_dir: str, img_len=448, split_cycle=7, max_len=None, transform=None):
-        super().__init__(root_dir, img_len, split_cycle, max_len, transform)
+    def __init__(self, root_dir: str, img_len=448, split_cycle=7,
+                 start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
+                 max_len=None, transform=None):
+        super().__init__(root_dir, img_len, split_cycle, start_date, end_date, max_len, transform)
 
         self.vir_type = "970nm"
 
 
 class VIRPolar(VIR):
-    def __init__(self, root_dir: str, img_len=448, split_cycle=7, max_len=None, transform=None):
-        super().__init__(root_dir, img_len, split_cycle, max_len, transform)
+    def __init__(self, root_dir: str, img_len=448, split_cycle=7,
+                 start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
+                 max_len=None, transform=None):
+        super().__init__(root_dir, img_len, split_cycle, start_date, end_date, max_len, transform)
 
         self.vir_type = "Polarizer"

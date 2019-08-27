@@ -1,4 +1,5 @@
 
+from datetime import datetime
 import glob
 from PIL import Image
 import torch
@@ -31,7 +32,9 @@ class LWIR(data.Dataset):
     The LWIR data from Exp0.
     """
 
-    def __init__(self, root_dir: str, img_len=224, split_cycle=7, max_len=None, transform=None):
+    def __init__(self, root_dir: str, img_len=224, split_cycle=7,
+                 start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
+                 max_len=None, transform=None):
         """
         :param root_dir: path to the Exp0 directory
         :param img_len: the length that the images will be resized to
@@ -43,13 +46,26 @@ class LWIR(data.Dataset):
             max_len = 10000
 
         self.root_dir = root_dir
-        self.lwir_dirs = sorted(glob.glob(root_dir + '/*LWIR'))[:max_len]
+        self.lwir_dirs = sorted(glob.glob(root_dir + '/*LWIR'))
+        self.lwir_dirs = self._filter_dirs(self.lwir_dirs, start_date, end_date, max_len)
 
         self.plant_crop_len = 70
         self.out_len = img_len
         self.split_cycle = split_cycle
 
         self.transform = transform
+
+    def _filter_dirs(self, dirs, start_date, end_date, max_len):
+        format = f"{self.root_dir}/%Y_%m_%d_%H_%M_%S_LWIR"
+
+        filtered = []
+        for dir in dirs:
+            date = datetime.strptime(dir, format)
+
+            if start_date <= date <= end_date:
+                filtered.append(dir)
+
+        return filtered[:max_len]
 
     def __len__(self):
         return len(positions) * self.split_cycle
