@@ -113,9 +113,6 @@ class VIR(data.Dataset):
         sample = {'image': image, 'label': labels[plant],
                   'position': positions[plant], 'plant': plant}
 
-        if self.transform:
-            sample = self.transform(sample)
-
         return sample
 
     def _get_image(self, vir_dir, plant_idx):
