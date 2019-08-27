@@ -146,23 +146,25 @@ class PlantFeatureExtractor(nn.Module):
 
         # extract features from each image
         if self.device is None:
-            x = {mod: self.image_feat_ext(x[mod]) for mod in self.mods}
+            img_feats = {mod: self.image_feat_ext(x[mod]) for mod in self.mods}
         else:
+            img_feats = {}
             for mod in self.mods:
                 with self.streams[mod]:
-                    x[mod] = self.image_feat_ext(x[mod])
+                    img_feats[mod] = self.image_feat_ext(x[mod])
 
         # extract the features for each mod using the corresponding feature extractor
         if self.device is None:
-            x = {mod: self.mod_extractors[mod](x[mod]) for mod in self.mods}
+            mod_feats = {mod: self.mod_extractors[mod](img_feats[mod]) for mod in self.mods}
         else:
+            mod_feats = {}
             for mod in self.mods:
                 with self.streams[mod]:
-                    x[mod] = self.mod_extractors[mod](x[mod])
+                    mod_feats[mod] = self.mod_extractors[mod](img_feats[mod])
             torch.cuda.synchronize(self.device)
 
         # take the final feature vector from each sequence
-        x = torch.cat([x[mod][:, -1, :] for mod in self.mods], dim=1)
+        x = torch.cat([mod_feats[mod][:, -1, :] for mod in self.mods], dim=1)
 
         # use the final linear feat extractor on all of these vectors
         return self.final_feat_extractor(x)
