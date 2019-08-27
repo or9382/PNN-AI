@@ -150,7 +150,7 @@ class PlantFeatureExtractor(nn.Module):
         else:
             img_feats = {}
             for mod in self.mods:
-                with self.streams[mod]:
+                with torch.cuda.stream(self.streams[mod]):
                     img_feats[mod] = self.image_feat_ext(x[mod])
 
         # extract the features for each mod using the corresponding feature extractor
@@ -159,7 +159,7 @@ class PlantFeatureExtractor(nn.Module):
         else:
             mod_feats = {}
             for mod in self.mods:
-                with self.streams[mod]:
+                with torch.cuda.stream(self.streams[mod]):
                     mod_feats[mod] = self.mod_extractors[mod](img_feats[mod])
             for mod in self.mods:
                 self.streams[mod].synchronize()
