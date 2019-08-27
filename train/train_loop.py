@@ -1,4 +1,3 @@
-
 from datetime import datetime
 import torch
 from torch import nn, optim
@@ -58,17 +57,16 @@ for epoch in range(epochs):
         plant_opt.zero_grad()
         ext_opt.zero_grad()
 
-        features : torch.Tensor = feat_ext(**batch)
+        features: torch.Tensor = feat_ext(**batch)
         features_plants = features.clone()
         features_plants.register_hook(lambda grad: -domain_adapt_l * grad)
 
         label_out = label_cls(features)
         label_loss = criterion(label_out, labels)
-        label_loss.backward()
 
         plant_out = plant_cls(features_plants)
         plant_loss = criterion(plant_out, plants)
-        (-plant_loss).backward()
+        (label_loss + plant_loss).backward()
 
         label_opt.step()
         ext_opt.step()
