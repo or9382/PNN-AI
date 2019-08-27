@@ -54,7 +54,7 @@ class ImageFeatureExtractor(nn.Module):
 
 
 class ModalityFeatureExtractor(TemporalConvNet):
-    def __init__(self, num_levels: int = 2, num_hidden: int = 60, embedding_size: int = 128, kernel_size=2,
+    def __init__(self, num_levels: int = 2, num_hidden: int = 600, embedding_size: int = 128, kernel_size=2,
                  dropout=0.2):
         """
 
@@ -161,7 +161,8 @@ class PlantFeatureExtractor(nn.Module):
             for mod in self.mods:
                 with self.streams[mod]:
                     mod_feats[mod] = self.mod_extractors[mod](img_feats[mod])
-            torch.cuda.synchronize(self.device)
+            for mod in self.mods:
+                self.streams[mod].synchronize()
 
         # take the final feature vector from each sequence
         x = torch.cat([mod_feats[mod][:, -1, :] for mod in self.mods], dim=1)
