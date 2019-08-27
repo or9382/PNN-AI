@@ -34,6 +34,10 @@ class ImageFeatureExtractor(nn.Module):
         for p in self.inception.parameters():
             p.requires_grad = False
 
+    # make sure that the inception model stays on eval
+    def train(self, mode=True):
+        return self
+
     def forward(self, x: torch.Tensor):
         """
 
@@ -45,7 +49,8 @@ class ImageFeatureExtractor(nn.Module):
             x = greyscale_to_RGB(x, add_channels_dim=len(x.shape) < 5)
 
         # if we got a batch of sequences we have to calculate each sequence separately
-        return torch.stack([self.inception(s) for s in x])
+        N, T = x.shape[:2]
+        return self.inception(x.view(-1, *x.shape[2:])).view(N, T, -1)
 
 
 class ModalityFeatureExtractor(TemporalConvNet):
@@ -111,6 +116,23 @@ class PlantFeatureExtractor(nn.Module):
 
         self.final_feat_extractor = nn.Sequential(nn.Linear(128 * len(self.mods), embedding_size), nn.ReLU())
 
+        self.device = None
+        self.streams = {mod: None for mod in self.mods}
+
+    def to(self, *args, **kwargs):
+        super().to(*args, **kwargs)
+
+        if next(self.parameters()).is_cuda:
+            device = next(self.parameters()).get_device()
+            if self.device != device:
+                self.device = device
+                self.streams = {mod: torch.cuda.Stream(device=self.device) for mod in self.mods}
+        elif self.device is not None:
+            self.device = None
+            self.streams = {mod: None for mod in self.mods}
+
+        return self
+
     def forward(self, **x: torch.Tensor):
         """
 
@@ -123,10 +145,21 @@ class PlantFeatureExtractor(nn.Module):
         assert set(self.mods) == set(x.keys())
 
         # extract features from each image
-        x = {mod: self.image_feat_ext(x[mod]) for mod in self.mods}
+        if self.device is None:
+            x = {mod: self.image_feat_ext(x[mod]) for mod in self.mods}
+        else:
+            for mod in self.mods:
+                with self.streams[mod]:
+                    x[mod] = self.image_feat_ext(x[mod])
 
         # extract the features for each mod using the corresponding feature extractor
-        x = {mod: self.mod_extractors[mod](x[mod]) for mod in self.mods}
+        if self.device is None:
+            x = {mod: self.mod_extractors[mod](x[mod]) for mod in self.mods}
+        else:
+            for mod in self.mods:
+                with self.streams[mod]:
+                    x[mod] = self.mod_extractors[mod](x[mod])
+            torch.cuda.synchronize(self.device)
 
         # take the final feature vector from each sequence
         x = torch.cat([x[mod][:, -1, :] for mod in self.mods], dim=1)
