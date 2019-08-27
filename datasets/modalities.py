@@ -1,4 +1,5 @@
 
+from datetime import datetime
 from torch.utils import data
 from typing import Dict
 
@@ -21,8 +22,9 @@ class Modalities(data.Dataset):
     A dataset class that lets the user decides which modalities to use.
     """
 
-    def __init__(self, root_dir: str, *mods: str, split_cycle=7, transform=None,
-                 **k_mods: Dict):
+    def __init__(self, root_dir: str, *mods: str, split_cycle=7,
+                 start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
+                 transform=None, **k_mods: Dict):
         """
         :param root_dir: path to the Exp0 directory
         :param mods: modalities to be in the dataset, initialized with default arguments
@@ -36,10 +38,12 @@ class Modalities(data.Dataset):
         self.modalities = dict()
 
         for mod in mods:
-            self.modalities[mod] = mod_map[mod](root_dir=root_dir, split_cycle=split_cycle)
+            self.modalities[mod] = mod_map[mod](root_dir=root_dir, split_cycle=split_cycle,
+                                                start_date=start_date, end_date=end_date)
 
         for mod in k_mods:
-            self.modalities[mod] = mod_map[mod](root_dir=root_dir, split_cycle=split_cycle, **k_mods[mod])
+            self.modalities[mod] = mod_map[mod](root_dir=root_dir, split_cycle=split_cycle,
+                                                start_date=start_date, end_date=end_date, **k_mods[mod])
 
         self.transform = transform
 
