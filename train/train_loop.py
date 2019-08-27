@@ -35,9 +35,9 @@ dataset = Modalities(
 )
 dataloader = data.DataLoader(dataset, batch_size=4, num_workers=2)
 
-feat_ext = FeatureExtractor(*modalities)
-label_cls = nn.Sequential(nn.Linear(512, len(classes)), nn.Softmax())
-plant_cls = nn.Sequential(nn.Linear(512, 48), nn.Softmax())
+feat_ext = FeatureExtractor(*modalities).to(device)
+label_cls = nn.Sequential(nn.Linear(512, len(classes)), nn.Softmax()).to(device)
+plant_cls = nn.Sequential(nn.Linear(512, 48), nn.Softmax()).to(device)
 
 criterion = nn.CrossEntropyLoss()
 
@@ -47,11 +47,15 @@ ext_opt = optim.Adam(feat_ext.parameters(), lr=extractor_lr)
 
 best_loss = float('inf')
 for epoch in range(epochs):
-    print(f"epoch {epoch + 1} - ", end='')
+    print(f"epoch {epoch + 1}:")
 
     tot_label_loss = 0.
     tot_plant_loss = 0.
+    tot_accuracy = 0.
     for i, batch in enumerate(dataloader):
+
+        for key in batch:
+            batch[key] = batch[key].to(device)
 
         labels = batch['label']
         plants = batch['plant']
@@ -74,6 +78,9 @@ for epoch in range(epochs):
         plant_loss = criterion(plant_out, plants)
         (label_loss + plant_loss).backward()
 
+        equality = (labels.data == label_out.max(dim=1)[1])
+        tot_accuracy += equality.float().mean()
+
         label_opt.step()
         ext_opt.step()
         plant_opt.step()
@@ -82,8 +89,9 @@ for epoch in range(epochs):
         tot_plant_loss += plant_loss.item()
 
         if i % 6 == 5:
-            print(f"{i}. label loss: {tot_label_loss / 6}")
-            print(f"{i}. plant loss: {tot_plant_loss / 6}")
+            print(f"\t{i}. label loss: {tot_label_loss / 6}")
+            print(f"\t{i}. plant loss: {tot_plant_loss / 6}")
+            print(f"\t{i}. accuracy: {tot_accuracy / 6}")
 
             if tot_label_loss < best_loss:
                 torch.save({
@@ -98,3 +106,4 @@ for epoch in range(epochs):
 
             tot_label_loss = 0.
             tot_plant_loss = 0.
+            tot_accuracy = 0.

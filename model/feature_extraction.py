@@ -54,7 +54,7 @@ class ImageFeatureExtractor(nn.Module):
 
 
 class ModalityFeatureExtractor(TemporalConvNet):
-    def __init__(self, num_levels: int = 2, num_hidden: int = 600, embedding_size: int = 128, kernel_size=2,
+    def __init__(self, num_levels: int = 3, num_hidden: int = 600, embedding_size: int = 128, kernel_size=2,
                  dropout=0.2):
         """
 
