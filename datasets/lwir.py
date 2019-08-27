@@ -47,15 +47,16 @@ class LWIR(data.Dataset):
 
         self.root_dir = root_dir
         self.lwir_dirs = sorted(glob.glob(root_dir + '/*LWIR'))
-        self.lwir_dirs = self._filter_dirs(self.lwir_dirs, start_date, end_date, max_len)
+        self.lwir_dirs = self._filter_dirs(self.lwir_dirs, start_date, end_date)
 
         self.plant_crop_len = 70
         self.out_len = img_len
         self.split_cycle = split_cycle
+        self.max_len = max_len
 
         self.transform = transform
 
-    def _filter_dirs(self, dirs, start_date, end_date, max_len):
+    def _filter_dirs(self, dirs, start_date, end_date):
         format = f"{self.root_dir}/%Y_%m_%d_%H_%M_%S_LWIR"
 
         filtered = []
@@ -65,7 +66,7 @@ class LWIR(data.Dataset):
             if start_date <= date <= end_date:
                 filtered.append(dir)
 
-        return filtered[:max_len]
+        return filtered
 
     def __len__(self):
         return len(positions) * self.split_cycle
@@ -95,11 +96,11 @@ class LWIR(data.Dataset):
 
             try:
                 image = self._get_image(lwir_dir, plant)
-                tensors.append(to_tensor(image))
+                tensors.append(to_tensor(image).float())
             except DirEmptyError:
                 pass
 
-        image = torch.cat(tensors)
+        image = torch.cat(tensors[:self.max_len])
 
         sample = {'image': image, 'label': labels[plant],
                   'position': positions[plant], 'plant': plant}

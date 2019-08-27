@@ -48,10 +48,11 @@ class VIR(data.Dataset):
 
         self.root_dir = root_dir
         self.vir_dirs = sorted(glob.glob(root_dir + '/*VIR_day'))
-        self.vir_dirs = self._filter_dirs(self.vir_dirs, start_date, end_date, max_len)
+        self.vir_dirs = self._filter_dirs(self.vir_dirs, start_date, end_date)
 
         self.img_len = img_len
         self.split_cycle = split_cycle
+        self.max_len = max_len
 
         self.transform = transform
 
@@ -59,7 +60,7 @@ class VIR(data.Dataset):
         # to be assigned by inheriting classes
         self.vir_type = None
 
-    def _filter_dirs(self, dirs, start_date, end_date, max_len):
+    def _filter_dirs(self, dirs, start_date, end_date):
         format = f"{self.root_dir}/%Y_%m_%d_%H_%M_%S_VIR_day"
 
         filtered = []
@@ -69,7 +70,7 @@ class VIR(data.Dataset):
             if start_date <= date <= end_date:
                 filtered.append(dir)
 
-        return filtered[:max_len]
+        return filtered
 
     def __len__(self):
         return len(positions) * self.split_cycle
@@ -103,7 +104,7 @@ class VIR(data.Dataset):
             except DirEmptyError:
                 pass
 
-        image = torch.cat(tensors)
+        image = torch.cat(tensors[:self.max_len])
 
         sample = {'image': image, 'label': labels[plant],
                   'position': positions[plant], 'plant': plant}
