@@ -9,9 +9,9 @@ from datasets import Modalities, classes
 from model import LinearWrapper, PlantFeatureExtractor as FeatureExtractor
 
 epochs = 5
-label_lr = 0.01
-plant_lr = 0.01
-extractor_lr = 0.001
+label_lr = 0.0001
+plant_lr = 0.0001
+extractor_lr = 0.0001
 
 start_date = datetime(2019, 6, 5)
 end_date = datetime(2019, 6, 23)
@@ -39,12 +39,12 @@ dataloader = data.DataLoader(dataset, batch_size=4, num_workers=2)
 
 feat_ext = FeatureExtractor(*modalities).to(device)
 label_cls = nn.Sequential(nn.Linear(512, len(classes)), nn.Softmax()).to(device)
-plant_cls = nn.Sequential(nn.Linear(512, 48), nn.Softmax()).to(device)
+# plant_cls = nn.Sequential(nn.Linear(512, 48), nn.Softmax()).to(device)
 
 criterion = nn.CrossEntropyLoss()
 
 label_opt = optim.Adam(label_cls.parameters(), lr=label_lr)
-plant_opt = optim.Adam(plant_cls.parameters(), lr=plant_lr)
+# plant_opt = optim.Adam(plant_cls.parameters(), lr=plant_lr)
 ext_opt = optim.Adam(feat_ext.parameters(), lr=extractor_lr)
 
 best_loss = float('inf')
@@ -52,7 +52,7 @@ for epoch in range(epochs):
     print(f"epoch {epoch + 1}:")
 
     tot_label_loss = 0.
-    tot_plant_loss = 0.
+    # tot_plant_loss = 0.
     tot_accuracy = 0.
     for i, batch in enumerate(dataloader):
 
@@ -66,33 +66,34 @@ for epoch in range(epochs):
         del batch['plant']
 
         label_opt.zero_grad()
-        plant_opt.zero_grad()
+        # plant_opt.zero_grad()
         ext_opt.zero_grad()
 
         features: torch.Tensor = feat_ext(**batch)
-        features_plants = features.clone()
-        features_plants.register_hook(lambda grad: -domain_adapt_l * grad)
+        # features_plants = features.clone()
+        # features_plants.register_hook(lambda grad: -domain_adapt_l * grad)
 
         label_out = label_cls(features)
         label_loss = criterion(label_out, labels)
 
-        plant_out = plant_cls(features_plants)
-        plant_loss = criterion(plant_out, plants)
-        (label_loss + plant_loss).backward()
+        # plant_out = plant_cls(features_plants)
+        # plant_loss = criterion(plant_out, plants)
+        # (label_loss + plant_loss).backward()
+        label_loss.backward()
 
         equality = (labels.data == label_out.max(dim=1)[1])
         tot_accuracy += equality.float().mean()
 
         label_opt.step()
         ext_opt.step()
-        plant_opt.step()
+        # plant_opt.step()
 
         tot_label_loss += label_loss.item()
-        tot_plant_loss += plant_loss.item()
+        # tot_plant_loss += plant_loss.item()
 
         if i % 6 == 5:
             print(f"\t{i}. label loss: {tot_label_loss / 6}")
-            print(f"\t{i}. plant loss: {tot_plant_loss / 6}")
+            # print(f"\t{i}. plant loss: {tot_plant_loss / 6}")
             print(f"\t{i}. accuracy: {tot_accuracy / 6}")
 
             if tot_label_loss < best_loss:
@@ -100,12 +101,12 @@ for epoch in range(epochs):
                     'epoch': epoch,
                     'feat_ext_state_dict': feat_ext.state_dict(),
                     'label_cls_state_dict': label_cls.state_dict(),
-                    'plant_cls_state_dict': plant_cls.state_dict(),
+                    # 'plant_cls_state_dict': plant_cls.state_dict(),
                     'loss': tot_label_loss
                 }, f'checkpoint')
 
                 best_loss = tot_label_loss
 
             tot_label_loss = 0.
-            tot_plant_loss = 0.
+            # tot_plant_loss = 0.
             tot_accuracy = 0.
