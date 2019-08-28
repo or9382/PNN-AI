@@ -62,14 +62,16 @@ for epoch in range(epochs):
         labels = batch['label']
         plants = batch['plant']
 
-        del batch['label']
-        del batch['plant']
+        x = batch.copy()
+
+        del x['label']
+        del x['plant']
 
         label_opt.zero_grad()
         # plant_opt.zero_grad()
         ext_opt.zero_grad()
 
-        features: torch.Tensor = feat_ext(**batch)
+        features: torch.Tensor = feat_ext(**x)
         # features_plants = features.clone()
         # features_plants.register_hook(lambda grad: -domain_adapt_l * grad)
 

@@ -107,12 +107,12 @@ class PlantFeatureExtractor(nn.Module):
         # create a feature extractor with default params for each default modality
         for mod in default_mods:
             self.mod_extractors[mod] = ModalityFeatureExtractor()
-            self.add_module(f'{mod}_feat_extractor', self.mod_extractors[mod])
+            self.add_module(f'TCN_{mod}_feat_extractor', self.mod_extractors[mod])
 
         # create a feature extractor with the inputted params for each param modality
         for mod in param_mods.keys():
             self.mod_extractors[mod] = ModalityFeatureExtractor(**param_mods[mod])
-            self.add_module(f'{mod}_feat_extractor', self.mod_extractors[mod])
+            self.add_module(f'TCN_{mod}_feat_extractor', self.mod_extractors[mod])
 
         self.final_feat_extractor = nn.Sequential(nn.Linear(128 * len(self.mods), embedding_size), nn.ReLU())
 
@@ -165,7 +165,7 @@ class PlantFeatureExtractor(nn.Module):
                 self.streams[mod].synchronize()
 
         # take the final feature vector from each sequence
-        x = torch.cat([mod_feats[mod][:, -1, :] for mod in self.mods], dim=1)
+        combined_features = torch.cat([mod_feats[mod][:, -1, :] for mod in self.mods], dim=1)
 
         # use the final linear feat extractor on all of these vectors
-        return self.final_feat_extractor(x)
+        return self.final_feat_extractor(combined_features)
