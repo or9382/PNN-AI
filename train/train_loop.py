@@ -17,7 +17,7 @@ start_date = datetime(2019, 6, 5)
 end_date = datetime(2019, 6, 23)
 split_cycle = 7
 lwir_max_len = 250
-vir_max_len = 16
+vir_max_len = 15
 
 domain_adapt_l = 0.1
 
