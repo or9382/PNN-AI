@@ -1,7 +1,7 @@
 
 from datetime import datetime
 import glob
-from PIL import Image
+import numpy as np
 import torch
 from torch.utils import data
 from torchvision import transforms
@@ -86,8 +86,6 @@ class VIR(data.Dataset):
         cycle_day = idx // len(positions)
         plant = idx % len(positions)
 
-        to_tensor = transforms.ToTensor()
-
         tensors = []
         cur_day = self._get_day(self.vir_dirs[0])
 
@@ -102,8 +100,9 @@ class VIR(data.Dataset):
                 continue
 
             try:
-                image = self._get_image(vir_dir, plant)
-                tensor = to_tensor(image).float()
+                arr = self._get_np_arr(vir_dir, plant)
+                tensor = torch.from_numpy(arr).float()
+                tensor.unsqueeze_(0)
                 tensors.append(self.transform(tensor))
             except DirEmptyError:
                 pass
@@ -115,7 +114,7 @@ class VIR(data.Dataset):
 
         return sample
 
-    def _get_image(self, vir_dir, plant_idx):
+    def _get_np_arr(self, vir_dir, plant_idx):
         pos = positions[plant_idx]
 
         left = pos[0] - self.img_len//2
@@ -129,11 +128,10 @@ class VIR(data.Dataset):
 
         image_path = image_path[0]
 
-        raw_data = open(image_path, 'rb').read()
-        image = Image.frombytes('LA', img_size, raw_data)
-        image = image.crop((left, top, right, bottom))
+        arr = np.fromfile(image_path, dtype=np.float16).reshape(3648, 5472)
+        arr = arr[top:bottom, left:right]
 
-        return image
+        return arr
 
     # returns the date (day) of the directory
     def _get_day(self, lwir_dir):
