@@ -128,7 +128,7 @@ class VIR(data.Dataset):
 
         image_path = image_path[0]
 
-        arr = np.fromfile(image_path, dtype=np.float16).reshape(3648, 5472)
+        arr = np.fromfile(image_path, dtype=np.int16).reshape(3648, 5472)
         arr = arr[top:bottom, left:right]
 
         return arr
