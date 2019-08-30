@@ -99,12 +99,13 @@ class LWIR(data.Dataset):
 
             try:
                 image = self._get_image(lwir_dir, plant)
-                tensor = to_tensor(image).float()
-                tensors.append(self.transform(tensor))
+                tensors.append(to_tensor(image).float())
             except DirEmptyError:
                 pass
 
-        image = torch.cat(tensors[:self.max_len])
+        tensors = tensors[:self.max_len]
+        tensors = [self.transform(tensor) for tensor in tensors]
+        image = torch.cat(tensors)
 
         sample = {'image': image, 'label': labels[plant],
                   'position': positions[plant], 'plant': plant}

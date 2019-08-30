@@ -3,7 +3,7 @@ from datetime import datetime
 import torch
 from torch import nn, optim
 from torch.utils import data
-from torchvision.transforms import Normalize
+import torchvision.transforms as T
 
 from datasets import Modalities, classes
 from model import LinearWrapper, PlantFeatureExtractor as FeatureExtractor
@@ -26,12 +26,12 @@ vir_max_len = 8
 train_ration = 5 / 6
 
 modalities = {
-    'lwir': {'max_len': lwir_max_len, 'transform': Normalize([21361.], [481.])},
-    '577nm': {'max_len': vir_max_len, 'transform': Normalize([12827.], [9353.])},
-    '692nm': {'max_len': vir_max_len, 'transform': Normalize([12650.], [12021.])},
-    '732nm': {'max_len': vir_max_len, 'transform': Normalize([3169.], [21595.])},
-    '970nm': {'max_len': vir_max_len, 'transform': Normalize([7389.], [4291.])},
-    'polar': {'max_len': vir_max_len, 'transform': Normalize([6248.], [22033.])}
+    'lwir': {'max_len': lwir_max_len, 'transform': T.Normalize([21361.], [481.])},
+    '577nm': {'max_len': vir_max_len, 'transform': T.Normalize([12827.], [9353.])},
+    '692nm': {'max_len': vir_max_len, 'transform': T.Normalize([12650.], [12021.])},
+    '732nm': {'max_len': vir_max_len, 'transform': T.Normalize([3169.], [21595.])},
+    '970nm': {'max_len': vir_max_len, 'transform': T.Normalize([7389.], [4291.])},
+    'polar': {'max_len': vir_max_len, 'transform': T.Normalize([6248.], [22033.])}
 }
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'

@@ -103,11 +103,13 @@ class VIR(data.Dataset):
                 arr = self._get_np_arr(vir_dir, plant)
                 tensor = torch.from_numpy(arr).float()
                 tensor.unsqueeze_(0)
-                tensors.append(self.transform(tensor))
+                tensors.append(tensor)
             except DirEmptyError:
                 pass
 
-        image = torch.cat(tensors[:self.max_len])
+        tensors = tensors[:self.max_len]
+        tensors = [self.transform(tensor) for tensor in tensors]
+        image = torch.cat(tensors)
 
         sample = {'image': image, 'label': labels[plant],
                   'position': positions[plant], 'plant': plant}
