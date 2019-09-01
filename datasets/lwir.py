@@ -32,7 +32,7 @@ class LWIR(data.Dataset):
     The LWIR data from Exp0.
     """
 
-    def __init__(self, root_dir: str, img_len=224, split_cycle=7,
+    def __init__(self, root_dir: str, img_len=229, split_cycle=7,
                  start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
                  max_len=None, transform=None):
         """
