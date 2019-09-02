@@ -83,8 +83,8 @@ train_loader = data.DataLoader(train_set, batch_size=4, num_workers=2, shuffle=T
 test_loader = data.DataLoader(test_set, batch_size=4, num_workers=2, shuffle=True)
 
 feat_ext = FeatureExtractor(*modalities).to(device)
-label_cls = nn.Linear(512, len(classes)).to(device)
-plant_cls = nn.Linear(512, 48).to(device)
+label_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, len(classes)).to(device))
+plant_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, 48).to(device))
 
 criterion = nn.CrossEntropyLoss()
 
@@ -97,7 +97,7 @@ best_loss = float('inf')
 
 def test_model():
     global best_loss
-    print('testing model:')
+    print('\ttesting model:')
 
     feat_ext.eval()
     label_cls.eval()
@@ -134,14 +134,15 @@ def test_model():
             tot_label_loss += criterion(label_out, labels).item()
             tot_plant_loss += criterion(plant_out, plants).item()
 
-    print(f"\tlabel accuracy - {tot_label_correct / (len(test_set))}")
-    print(f"\tlabel loss - {4 * tot_label_loss / (len(test_set))}")
-    print(f"\tplant accuracy - {tot_plant_correct / (len(test_set))}")
-    print(f"\tplant loss - {4 * tot_plant_loss / (len(test_set))}")
+    print(f"\t\tlabel accuracy - {tot_label_correct / (len(test_set))}")
+    print(f"\t\tlabel loss - {4 * tot_label_loss / (len(test_set))}")
+    print(f"\t\tplant accuracy - {tot_plant_correct / (len(test_set))}")
+    print(f"\t\tplant loss - {4 * tot_plant_loss / (len(test_set))}")
 
     if save_checkpoints and tot_label_loss / tot_plant_loss < best_loss:
         best_loss = tot_label_loss / tot_plant_loss
 
+        print(f'\t\tsaving model with new best loss ratio {best_loss}')
         torch.save({
             'feat_ext_state_dict': feat_ext.state_dict(),
             'label_cls_state_dict': label_cls.state_dict(),
