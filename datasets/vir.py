@@ -129,16 +129,21 @@ class VIR(data.Dataset):
             raise DirEmptyError()
 
         image_path = image_path[0]
+        exposure = self._get_exposure(image_path)
 
         arr = np.fromfile(image_path, dtype=np.int16).reshape(3648, 5472)
-        arr = arr[top:bottom, left:right]
+        arr = arr[top:bottom, left:right] / exposure
 
         return arr
 
     # returns the date (day) of the directory
-    def _get_day(self, lwir_dir):
-        lwir_dir = lwir_dir[len(self.root_dir) + 1:]
-        return lwir_dir.split('_')[2]
+    def _get_day(self, vir_dir):
+        vir_dir = vir_dir[len(self.root_dir) + 1:]
+        return vir_dir.split('_')[2]
+
+    @staticmethod
+    def _get_exposure(file_name):
+        return float(file_name.split('ET')[-1].split('.')[0])
 
 
 class VIR577nm(VIR):

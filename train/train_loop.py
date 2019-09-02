@@ -35,27 +35,27 @@ trans_lwir = T.Compose([
 ])
 
 trans_577 = T.Compose([
-    T.Normalize([12827.], [9353.]), T.ToPILImage(),
+    T.Normalize([.00607], [.00773]), T.ToPILImage(),
     RandomCrop(vir_max_len, (458, 458)), T.ToTensor()
 ])
 
 trans_692 = T.Compose([
-    T.Normalize([12650.], [12021.]), T.ToPILImage(),
+    T.Normalize([.02629], [.04364]), T.ToPILImage(),
     RandomCrop(vir_max_len, (458, 458)), T.ToTensor()
 ])
 
 trans_732 = T.Compose([
-    T.Normalize([3169.], [21595.]), T.ToPILImage(),
+    T.Normalize([.01072], [.11680]), T.ToPILImage(),
     RandomCrop(vir_max_len, (458, 458)), T.ToTensor()
 ])
 
 trans_970 = T.Compose([
-    T.Normalize([7389.], [4291.]), T.ToPILImage(),
+    T.Normalize([.00125], [.00095]), T.ToPILImage(),
     RandomCrop(vir_max_len, (458, 458)), T.ToTensor()
 ])
 
 trans_polar = T.Compose([
-    T.Normalize([6248.], [22033.]), T.ToPILImage(),
+    T.Normalize([.05136], [.22331]), T.ToPILImage(),
     RandomCrop(vir_max_len, (458, 458)), T.ToTensor()
 ])
 
