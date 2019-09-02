@@ -1,7 +1,8 @@
 
 from datetime import datetime
 from torch.utils import data
-from typing import Dict
+from typing import Dict, List
+import random
 
 from . import LWIR, VIR577nm, VIR692nm, VIR732nm, VIR970nm, VIRPolar
 from .labels import labels
@@ -47,6 +48,9 @@ class Modalities(data.Dataset):
 
         self.transform = transform
 
+        self.split_cycle = split_cycle
+        self.num_plants = len(labels)
+
     def __len__(self):
         dataset = next(iter(self.modalities.values()))
         return len(dataset)
@@ -56,7 +60,7 @@ class Modalities(data.Dataset):
             mod: dataset[idx]['image'] for mod, dataset in self.modalities.items()
         }
 
-        plant = idx % len(labels)
+        plant = idx % self.num_plants
 
         sample['label'] = labels[plant]
         sample['plant'] = plant
@@ -65,3 +69,42 @@ class Modalities(data.Dataset):
             sample = self.transform(sample)
 
         return sample
+
+
+class ModalitiesSubset(data.Dataset):
+    def __init__(self, modalities: Modalities, plants: List[int]):
+        self.data = modalities
+        self.split_cycle = modalities.split_cycle
+        self.plants = plants
+        self.num_plants = len(plants)
+
+    def __len__(self):
+        return self.num_plants * self.split_cycle
+
+    def __getitem__(self, idx):
+        plant = self.plants[idx % self.num_plants]
+        cycle = idx // self.num_plants
+
+        return self.data[self.data.num_plants * cycle + plant]
+
+    @staticmethod
+    def random_split(modalities: Modalities, plants_amounts: List[int]):
+        idx = list(range(modalities.num_plants))
+        random.shuffle(idx)
+
+        subsets = []
+        for amount in plants_amounts:
+            subsets.append(ModalitiesSubset(modalities, idx[:amount]))
+            idx = idx[amount:]
+
+        return subsets
+
+    @staticmethod
+    def leave_one_out(modalities: Modalities, plant_idx: int):
+        rest_idx = list(range(modalities.num_plants))
+        del rest_idx[plant_idx]
+
+        one_out = ModalitiesSubset(modalities, [plant_idx])
+        rest = ModalitiesSubset(modalities, rest_idx)
+
+        return one_out, rest

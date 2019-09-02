@@ -5,11 +5,11 @@ from torch import nn, optim
 from torch.utils import data
 import torchvision.transforms as T
 
-from datasets import Modalities, classes
+from datasets import Modalities, ModalitiesSubset, classes
 from datasets.transformations import *
 from model import PlantFeatureExtractor as FeatureExtractor
 
-save_checkpoints = True
+
 use_checkpoint = False
 
 # training hyper-parameters
@@ -28,6 +28,7 @@ lwir_max_len = 250
 vir_max_len = 8
 
 train_ration = 5 / 6
+batch_size = 4
 
 trans_lwir = T.Compose([
     T.Normalize([21361.], [481.]), T.ToPILImage(),
@@ -74,14 +75,6 @@ dataset = Modalities(
     'Exp0', split_cycle=split_cycle, start_date=start_date, end_date=end_date, **modalities
 )
 
-train_amount = int(train_ration * len(dataset))
-test_amount = len(dataset) - train_amount
-
-train_set, test_set = data.random_split(dataset, (train_amount, test_amount))
-
-train_loader = data.DataLoader(train_set, batch_size=4, num_workers=2, shuffle=True)
-test_loader = data.DataLoader(test_set, batch_size=4, num_workers=2, shuffle=True)
-
 feat_ext = FeatureExtractor(*modalities).to(device)
 label_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, len(classes)).to(device))
 plant_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, 48).to(device))
@@ -95,7 +88,9 @@ ext_opt = optim.Adam(feat_ext.parameters(), lr=extractor_lr)
 best_loss = float('inf')
 
 
-def test_model():
+def test_model(test_set, save_checkpoints=True):
+    test_loader = data.DataLoader(test_set, batch_size=batch_size, num_workers=2)
+
     global best_loss
     print('\ttesting model:')
 
@@ -135,9 +130,9 @@ def test_model():
             tot_plant_loss += criterion(plant_out, plants).item()
 
     print(f"\t\tlabel accuracy - {tot_label_correct / (len(test_set))}")
-    print(f"\t\tlabel loss - {4 * tot_label_loss / (len(test_set))}")
+    print(f"\t\tlabel loss - {tot_label_loss / (len(test_set))}")
     print(f"\t\tplant accuracy - {tot_plant_correct / (len(test_set))}")
-    print(f"\t\tplant loss - {4 * tot_plant_loss / (len(test_set))}")
+    print(f"\t\tplant loss - {tot_plant_loss / len(test_set)}")
 
     if save_checkpoints and tot_label_loss / tot_plant_loss < best_loss:
         best_loss = tot_label_loss / tot_plant_loss
@@ -150,8 +145,16 @@ def test_model():
             'loss': best_loss
         }, 'checkpoint')
 
+    return tot_label_correct / len(test_set), tot_label_loss / len(test_set)
 
-def train_loop():
+
+def train_loop(dataset=dataset, save_checkpoints=True):
+    train_amount = int(train_ration * len(dataset))
+    test_amount = len(dataset) - train_amount
+
+    train_set, test_set = ModalitiesSubset.random_split(dataset, [train_amount, test_amount])
+    train_loader = data.DataLoader(train_set, batch_size=batch_size, num_workers=2)
+
     for epoch in range(epochs):
         print(f"epoch {epoch + 1}:")
 
@@ -209,7 +212,31 @@ def train_loop():
                 tot_plant_loss = 0.
                 tot_accuracy = 0.
 
-        test_model()
+        test_model(test_set, save_checkpoints)
+
+
+def leave_one_out_test(amount=10):
+    indices = random.sample(range(dataset.num_plants), amount)
+
+    tot_accuracy = 0.
+    tot_loss = 0.
+    for idx in indices:
+        print(f"plant left out: {idx}")
+        out, rest = ModalitiesSubset.leave_one_out(dataset, idx)
+
+        train_loop(rest)
+        restore_checkpoint()
+
+        print("testing left-out plant")
+        accuracy, loss = test_model(out, save_checkpoints=False)
+        tot_accuracy += accuracy
+        tot_loss += loss
+
+        print()
+
+    print(f"Leave-One-Out results:")
+    print(f"accuracy - {tot_accuracy / amount}")
+    print(f"loss - {tot_loss / amount}")
 
 
 def restore_checkpoint():
