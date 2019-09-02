@@ -27,41 +27,41 @@ split_cycle = 7
 lwir_max_len = 250
 vir_max_len = 8
 
-train_ration = 5 / 6
+train_ratio = 5 / 6
 batch_size = 4
 
 trans_lwir = T.Compose([
     T.Normalize([21361.], [481.]), T.ToPILImage(),
-    RandomCrop(lwir_max_len, (229, 229)), T.ToTensor()
+    RandomCrop(lwir_max_len, (224, 224)), T.ToTensor()
 ])
 
 trans_577 = T.Compose([
     T.Normalize([.00607], [.00773]), T.ToPILImage(),
-    RandomCrop(vir_max_len, (458, 458)), T.ToTensor()
+    RandomCrop(vir_max_len, (448, 448)), T.ToTensor()
 ])
 
 trans_692 = T.Compose([
     T.Normalize([.02629], [.04364]), T.ToPILImage(),
-    RandomCrop(vir_max_len, (458, 458)), T.ToTensor()
+    RandomCrop(vir_max_len, (448, 448)), T.ToTensor()
 ])
 
 trans_732 = T.Compose([
     T.Normalize([.01072], [.11680]), T.ToPILImage(),
-    RandomCrop(vir_max_len, (458, 458)), T.ToTensor()
+    RandomCrop(vir_max_len, (448, 448)), T.ToTensor()
 ])
 
 trans_970 = T.Compose([
     T.Normalize([.00125], [.00095]), T.ToPILImage(),
-    RandomCrop(vir_max_len, (458, 458)), T.ToTensor()
+    RandomCrop(vir_max_len, (448, 448)), T.ToTensor()
 ])
 
 trans_polar = T.Compose([
     T.Normalize([.05136], [.22331]), T.ToPILImage(),
-    RandomCrop(vir_max_len, (458, 458)), T.ToTensor()
+    RandomCrop(vir_max_len, (448, 448)), T.ToTensor()
 ])
 
 modalities = {
-    'lwir': {'img_len': 300, 'max_len': lwir_max_len, 'transform': trans_lwir},
+    'lwir': {'img_len': 280, 'max_len': lwir_max_len, 'transform': trans_lwir},
     '577nm': {'img_len': 500, 'max_len': vir_max_len, 'transform': trans_577},
     '692nm': {'img_len': 500, 'max_len': vir_max_len, 'transform': trans_692},
     '732nm': {'img_len': 500, 'max_len': vir_max_len, 'transform': trans_732},
@@ -89,7 +89,7 @@ best_loss = float('inf')
 
 
 def test_model(test_set, save_checkpoints=True):
-    test_loader = data.DataLoader(test_set, batch_size=batch_size, num_workers=2)
+    test_loader = data.DataLoader(test_set, batch_size=batch_size, num_workers=2, shuffle=True)
 
     global best_loss
     print('\ttesting model:')
@@ -149,11 +149,11 @@ def test_model(test_set, save_checkpoints=True):
 
 
 def train_loop(dataset=dataset, save_checkpoints=True):
-    train_amount = int(train_ration * len(dataset))
-    test_amount = len(dataset) - train_amount
+    train_amount = int(train_ratio * dataset.num_plants)
+    test_amount = dataset.num_plants - train_amount
 
     train_set, test_set = ModalitiesSubset.random_split(dataset, [train_amount, test_amount])
-    train_loader = data.DataLoader(train_set, batch_size=batch_size, num_workers=2)
+    train_loader = data.DataLoader(train_set, batch_size=batch_size, num_workers=2, shuffle=True)
 
     for epoch in range(epochs):
         print(f"epoch {epoch + 1}:")
@@ -215,28 +215,37 @@ def train_loop(dataset=dataset, save_checkpoints=True):
         test_model(test_set, save_checkpoints)
 
 
-def leave_one_out_test(amount=10):
-    indices = random.sample(range(dataset.num_plants), amount)
+def leave_one_out_test():
+    global best_loss, feat_ext, label_cls, plant_cls
 
-    tot_accuracy = 0.
-    tot_loss = 0.
-    for idx in indices:
-        print(f"plant left out: {idx}")
-        out, rest = ModalitiesSubset.leave_one_out(dataset, idx)
+    with open("leave_one_out_results.txt", 'w') as f:
 
-        train_loop(rest)
-        restore_checkpoint()
+        tot_accuracy = 0.
+        tot_loss = 0.
+        for i in range(dataset.num_plants):
+            print(f"plant left out: {i}")
+            out, rest = ModalitiesSubset.leave_one_out(dataset, i)
 
-        print("testing left-out plant")
-        accuracy, loss = test_model(out, save_checkpoints=False)
-        tot_accuracy += accuracy
-        tot_loss += loss
+            best_loss = float('inf')
+            feat_ext = FeatureExtractor(*modalities).to(device)
+            label_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, len(classes)).to(device))
+            plant_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, 48).to(device))
 
-        print()
+            train_loop(rest)
+            restore_checkpoint()
+
+            print("testing left-out plant")
+            accuracy, loss = test_model(out, save_checkpoints=False)
+            tot_accuracy += accuracy
+            tot_loss += loss
+
+            f.write(f"{i}) accuracy: {accuracy}\n")
+            f.write(f"{i}) loss: {loss}\n")
+            print()
 
     print(f"Leave-One-Out results:")
-    print(f"accuracy - {tot_accuracy / amount}")
-    print(f"loss - {tot_loss / amount}")
+    print(f"accuracy - {tot_accuracy / dataset.num_plants}")
+    print(f"loss - {tot_loss / dataset.num_plants}")
 
 
 def restore_checkpoint():
