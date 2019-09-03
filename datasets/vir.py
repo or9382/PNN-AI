@@ -132,7 +132,7 @@ class VIR(data.Dataset):
         exposure = self._get_exposure(image_path)
 
         arr = np.fromfile(image_path, dtype=np.int16).reshape(3648, 5472)
-        arr = arr[top:bottom, left:right] / exposure
+        arr = arr[top:bottom, left:right]# / exposure
 
         return arr
 

@@ -1,5 +1,6 @@
 
 from datetime import datetime
+import os
 import torch
 from torch import nn, optim
 from torch.utils import data
@@ -32,36 +33,42 @@ batch_size = 4
 
 trans_lwir = T.Compose([
     T.Normalize([21361.], [481.]), T.ToPILImage(),
-    RandomCrop(lwir_max_len, (224, 224)), T.ToTensor()
+    RandomCrop(lwir_max_len, (224, 224)), RandomHorizontalFlip(lwir_max_len),
+    RandomVerticalFlip(lwir_max_len), T.ToTensor()
 ])
 
 trans_577 = T.Compose([
     T.Normalize([.00607], [.00773]), T.ToPILImage(),
-    RandomCrop(vir_max_len, (448, 448)), T.ToTensor()
+    RandomCrop(vir_max_len, (448, 448)), RandomHorizontalFlip(vir_max_len),
+    RandomVerticalFlip(vir_max_len), T.ToTensor()
 ])
 
 trans_692 = T.Compose([
     T.Normalize([.02629], [.04364]), T.ToPILImage(),
-    RandomCrop(vir_max_len, (448, 448)), T.ToTensor()
+    RandomCrop(vir_max_len, (448, 448)), RandomHorizontalFlip(vir_max_len),
+    RandomVerticalFlip(vir_max_len), T.ToTensor()
 ])
 
 trans_732 = T.Compose([
     T.Normalize([.01072], [.11680]), T.ToPILImage(),
-    RandomCrop(vir_max_len, (448, 448)), T.ToTensor()
+    RandomCrop(vir_max_len, (448, 448)), RandomHorizontalFlip(vir_max_len),
+    RandomVerticalFlip(vir_max_len), T.ToTensor()
 ])
 
 trans_970 = T.Compose([
     T.Normalize([.00125], [.00095]), T.ToPILImage(),
-    RandomCrop(vir_max_len, (448, 448)), T.ToTensor()
+    RandomCrop(vir_max_len, (448, 448)), RandomHorizontalFlip(vir_max_len),
+    RandomVerticalFlip(vir_max_len), T.ToTensor()
 ])
 
 trans_polar = T.Compose([
     T.Normalize([.05136], [.22331]), T.ToPILImage(),
-    RandomCrop(vir_max_len, (448, 448)), T.ToTensor()
+    RandomCrop(vir_max_len, (448, 448)), RandomHorizontalFlip(vir_max_len),
+    RandomVerticalFlip(vir_max_len), T.ToTensor()
 ])
 
 modalities = {
-    'lwir': {'img_len': 280, 'max_len': lwir_max_len, 'transform': trans_lwir},
+    'lwir': {'img_len': 300, 'max_len': lwir_max_len, 'transform': trans_lwir},
     '577nm': {'img_len': 500, 'max_len': vir_max_len, 'transform': trans_577},
     '692nm': {'img_len': 500, 'max_len': vir_max_len, 'transform': trans_692},
     '732nm': {'img_len': 500, 'max_len': vir_max_len, 'transform': trans_732},
@@ -204,8 +211,8 @@ def train_loop(dataset=dataset, save_checkpoints=True):
             tot_plant_loss += plant_loss.item()
 
             if i % 6 == 5:
-                print(f"\t{i}. label loss: {tot_label_loss / 6}")
-                print(f"\t{i}. plant loss: {tot_plant_loss / 6}")
+                print(f"\t{i}. label loss: {tot_label_loss / (6 * train_loader.batch_size)}")
+                print(f"\t{i}. plant loss: {tot_plant_loss / (6 * train_loader.batch_size)}")
                 print(f"\t{i}. accuracy: {tot_accuracy / 6}")
 
                 tot_label_loss = 0.
@@ -215,14 +222,14 @@ def train_loop(dataset=dataset, save_checkpoints=True):
         test_model(test_set, save_checkpoints)
 
 
-def leave_one_out_test():
-    global best_loss, feat_ext, label_cls, plant_cls
+def leave_one_out_test(amount=10):
+    global best_loss, feat_ext, label_cls, plant_cls, criterion, label_opt, plant_opt, ext_opt
 
     with open("leave_one_out_results.txt", 'w') as f:
 
         tot_accuracy = 0.
         tot_loss = 0.
-        for i in range(dataset.num_plants):
+        for i in list(range(dataset.num_plants))[:amount]:
             print(f"plant left out: {i}")
             out, rest = ModalitiesSubset.leave_one_out(dataset, i)
 
@@ -230,6 +237,12 @@ def leave_one_out_test():
             feat_ext = FeatureExtractor(*modalities).to(device)
             label_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, len(classes)).to(device))
             plant_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, 48).to(device))
+
+            criterion = nn.CrossEntropyLoss()
+
+            label_opt = optim.Adam(label_cls.parameters(), lr=label_lr)
+            plant_opt = optim.Adam(plant_cls.parameters(), lr=plant_lr)
+            ext_opt = optim.Adam(feat_ext.parameters(), lr=extractor_lr)
 
             train_loop(rest)
             restore_checkpoint()
@@ -241,6 +254,8 @@ def leave_one_out_test():
 
             f.write(f"{i}) accuracy: {accuracy}\n")
             f.write(f"{i}) loss: {loss}\n")
+            f.flush()
+            os.fsync(f.fileno())
             print()
 
     print(f"Leave-One-Out results:")
@@ -256,6 +271,8 @@ def restore_checkpoint():
     label_cls.load_state_dict(checkpoint['label_cls_state_dict'])
     plant_cls.load_state_dict(checkpoint['plant_cls_state_dict'])
     best_loss = checkpoint['loss']
+
+    print(f"restoring model to one with loss - {best_loss}")
 
     feat_ext = feat_ext.to(device)
     label_cls = label_cls.to(device)

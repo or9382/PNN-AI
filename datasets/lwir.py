@@ -49,7 +49,7 @@ class LWIR(data.Dataset):
         self.lwir_dirs = sorted(glob.glob(root_dir + '/*LWIR'))
         self.lwir_dirs = self._filter_dirs(self.lwir_dirs, start_date, end_date)
 
-        self.plant_crop_len = 70
+        self.plant_crop_len = 60
         self.out_len = img_len
         self.split_cycle = split_cycle
         self.max_len = max_len
