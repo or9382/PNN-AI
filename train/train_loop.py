@@ -17,9 +17,9 @@ use_checkpoint = False
 epochs = 10
 label_lr = 1e-4
 plant_lr = 1e-4
-extractor_lr = 1e-4
+extractor_lr = 1e-3
 
-domain_adapt_lr = 1e-2
+domain_adapt_lr = 1e-3
 
 # dataset parameters
 start_date = datetime(2019, 6, 5)
@@ -116,7 +116,6 @@ def test_model(test_set, save_checkpoints=True):
                 batch[key] = batch[key].to(device)
 
             labels = batch['label']
-            plants = batch['plant']
 
             x = batch.copy()
 
@@ -125,26 +124,18 @@ def test_model(test_set, save_checkpoints=True):
 
             features: torch.Tensor = feat_ext(**x)
             label_out = label_cls(features)
-            plant_out = plant_cls(features)
 
             label_equality = (labels.data == label_out.max(dim=1)[1])
-            plant_equality = (plants.data == plant_out.max(dim=1)[1])
-
             tot_label_correct += sum(label_equality).item()
-            tot_plant_correct += sum(plant_equality).item()
-
             tot_label_loss += criterion(label_out, labels).item()
-            tot_plant_loss += criterion(plant_out, plants).item()
 
     print(f"\t\tlabel accuracy - {tot_label_correct / (len(test_set))}")
     print(f"\t\tlabel loss - {tot_label_loss / (len(test_set))}")
-    print(f"\t\tplant accuracy - {tot_plant_correct / (len(test_set))}")
-    print(f"\t\tplant loss - {tot_plant_loss / len(test_set)}")
 
-    if save_checkpoints and tot_label_loss / tot_plant_loss < best_loss:
-        best_loss = tot_label_loss / tot_plant_loss
+    if save_checkpoints and tot_label_loss < best_loss:
+        best_loss = tot_label_loss
 
-        print(f'\t\tsaving model with new best loss ratio {best_loss}')
+        print(f'\t\tsaving model with new best loss {best_loss}')
         torch.save({
             'feat_ext_state_dict': feat_ext.state_dict(),
             'label_cls_state_dict': label_cls.state_dict(),
