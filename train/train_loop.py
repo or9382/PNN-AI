@@ -15,11 +15,11 @@ use_checkpoint = False
 
 # training hyper-parameters
 epochs = 10
-label_lr = 1e-4
-plant_lr = 1e-4
-extractor_lr = 1e-3
+label_lr = 1e-3
+plant_lr = 1e-3
+extractor_lr = 1e-2
 
-domain_adapt_lr = 1e-3
+domain_adapt_lr = 1e-2
 
 # dataset parameters
 start_date = datetime(2019, 6, 5)
@@ -129,11 +129,11 @@ def test_model(test_set, save_checkpoints=True):
             tot_label_correct += sum(label_equality).item()
             tot_label_loss += criterion(label_out, labels).item()
 
-    print(f"\t\tlabel accuracy - {tot_label_correct / (len(test_set))}")
-    print(f"\t\tlabel loss - {tot_label_loss / (len(test_set))}")
+    print(f"\t\tlabel accuracy - {tot_label_correct / len(test_set)}")
+    print(f"\t\tlabel loss - {tot_label_loss / len(test_set)}")
 
-    if save_checkpoints and tot_label_loss < best_loss:
-        best_loss = tot_label_loss
+    if save_checkpoints and tot_label_loss / len(test_set) < best_loss:
+        best_loss = tot_label_loss / len(test_set)
 
         print(f'\t\tsaving model with new best loss {best_loss}')
         torch.save({
