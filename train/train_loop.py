@@ -14,10 +14,10 @@ from model import PlantFeatureExtractor as FeatureExtractor
 use_checkpoint = False
 
 # training hyper-parameters
-epochs = 10
-label_lr = 1e-3
-plant_lr = 1e-3
-extractor_lr = 1e-2
+epochs = 15
+label_lr = 1e-4
+plant_lr = 1e-4
+extractor_lr = 1e-4
 
 domain_adapt_lr = 1e-2
 
@@ -28,7 +28,7 @@ split_cycle = 7
 lwir_max_len = 250
 vir_max_len = 8
 
-train_ratio = 5 / 6
+train_ratio = 3 / 4
 batch_size = 4
 
 trans_lwir = T.Compose([

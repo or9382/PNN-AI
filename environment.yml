@@ -3,6 +3,7 @@ dependencies:
   - python=3.6
   - pytorch
   - cudatoolkit=9.0
+  - scikit-learn
   - pip:
     - torchvision
     - astar-tcn --no-dependencies
