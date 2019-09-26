@@ -34,11 +34,12 @@ class LWIR(data.Dataset):
 
     def __init__(self, root_dir: str, img_len=229, split_cycle=7,
                  start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
-                 max_len=None, transform=None):
+                 skip=1, max_len=None, transform=None):
         """
         :param root_dir: path to the Exp0 directory
         :param img_len: the length that the images will be resized to
         :param split_cycle: amount of days the data will be split by
+        :param skip: how many frames to skip between ones taken
         :param max_len: the max amount of images to use; if None - no limit
         :param transform: optional transform to be applied on each frame
         """
@@ -46,7 +47,7 @@ class LWIR(data.Dataset):
             max_len = 10000
 
         self.root_dir = root_dir
-        self.lwir_dirs = sorted(glob.glob(root_dir + '/*LWIR'))
+        self.lwir_dirs = sorted(glob.glob(root_dir + '/*LWIR'))[::skip]
         self.lwir_dirs = self._filter_dirs(self.lwir_dirs, start_date, end_date)
 
         self.plant_crop_len = 60
