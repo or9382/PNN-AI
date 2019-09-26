@@ -27,7 +27,7 @@ class ImageFeatureExtractor(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.inception = inception_v3(pretrained=True, transform_input=True, aux_logits=True)
+        self.inception = inception_v3(pretrained=True, transform_input=False, aux_logits=True)
         self.inception.fc = Identity()
         self.inception.eval()
 

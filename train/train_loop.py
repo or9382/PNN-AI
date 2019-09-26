@@ -14,18 +14,19 @@ from model import PlantFeatureExtractor as FeatureExtractor
 use_checkpoint = False
 
 # training hyper-parameters
-epochs = 15
+epochs = 40
 label_lr = 1e-4
 plant_lr = 1e-4
-extractor_lr = 1e-4
+extractor_lr = 1e-3
 
-domain_adapt_lr = 1e-2
+domain_adapt_lr = 0.1
 
 # dataset parameters
 start_date = datetime(2019, 6, 5)
 end_date = datetime(2019, 6, 23)
 split_cycle = 7
-lwir_max_len = 250
+lwir_max_len = 41
+skip = 6
 vir_max_len = 8
 
 train_ratio = 3 / 4
@@ -68,7 +69,7 @@ trans_polar = T.Compose([
 ])
 
 modalities = {
-    'lwir': {'img_len': 300, 'max_len': lwir_max_len, 'transform': trans_lwir},
+    'lwir': {'img_len': 300, 'max_len': lwir_max_len, 'skip': skip, 'transform': trans_lwir},
     '577nm': {'img_len': 500, 'max_len': vir_max_len, 'transform': trans_577},
     '692nm': {'img_len': 500, 'max_len': vir_max_len, 'transform': trans_692},
     '732nm': {'img_len': 500, 'max_len': vir_max_len, 'transform': trans_732},
@@ -86,7 +87,7 @@ feat_ext = FeatureExtractor(*modalities).to(device)
 label_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, len(classes)).to(device))
 plant_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, 48).to(device))
 
-criterion = nn.CrossEntropyLoss()
+criterion = nn.CrossEntropyLoss().cuda()
 
 label_opt = optim.Adam(label_cls.parameters(), lr=label_lr)
 plant_opt = optim.Adam(plant_cls.parameters(), lr=plant_lr)
@@ -105,10 +106,8 @@ def test_model(test_set, save_checkpoints=True):
     label_cls.eval()
     plant_cls.eval()
 
-    tot_label_correct = 0
-    tot_plant_correct = 0
+    tot_accuracy = 0.
     tot_label_loss = 0.
-    tot_plant_loss = 0.
     with torch.no_grad():
         for batch in test_loader:
 
@@ -124,26 +123,30 @@ def test_model(test_set, save_checkpoints=True):
 
             features: torch.Tensor = feat_ext(**x)
             label_out = label_cls(features)
+            label_loss = criterion(label_out, labels)
 
-            label_equality = (labels.data == label_out.max(dim=1)[1])
-            tot_label_correct += sum(label_equality).item()
-            tot_label_loss += criterion(label_out, labels).item()
+            equality = (labels.data == label_out.max(dim=1)[1])
+            tot_accuracy += equality.float().mean()
+            tot_label_loss += label_loss.item()
 
-    print(f"\t\tlabel accuracy - {tot_label_correct / len(test_set)}")
-    print(f"\t\tlabel loss - {tot_label_loss / len(test_set)}")
+    accuracy = tot_accuracy / (len(test_set) / batch_size)
+    loss = tot_label_loss / (len(test_set) / batch_size)
+    print(f"\t\tlabel accuracy - {accuracy}")
+    print(f"\t\tlabel loss - {loss}")
 
-    if save_checkpoints and tot_label_loss / len(test_set) < best_loss:
-        best_loss = tot_label_loss / len(test_set)
+    if save_checkpoints and loss < best_loss:
+        best_loss = loss
 
         print(f'\t\tsaving model with new best loss {best_loss}')
         torch.save({
             'feat_ext_state_dict': feat_ext.state_dict(),
             'label_cls_state_dict': label_cls.state_dict(),
             'plant_cls_state_dict': plant_cls.state_dict(),
-            'loss': best_loss
+            'loss': best_loss,
+            'accuracy': accuracy
         }, 'checkpoint')
 
-    return tot_label_correct / len(test_set), tot_label_loss / len(test_set)
+    return tot_accuracy / len(test_set), tot_label_loss / len(test_set)
 
 
 def train_loop(dataset=dataset, save_checkpoints=True):
@@ -202,8 +205,8 @@ def train_loop(dataset=dataset, save_checkpoints=True):
             tot_plant_loss += plant_loss.item()
 
             if i % 6 == 5:
-                print(f"\t{i}. label loss: {tot_label_loss / (6 * train_loader.batch_size)}")
-                print(f"\t{i}. plant loss: {tot_plant_loss / (6 * train_loader.batch_size)}")
+                print(f"\t{i}. label loss: {tot_label_loss / 6}")
+                print(f"\t{i}. plant loss: {tot_plant_loss / 6}")
                 print(f"\t{i}. accuracy: {tot_accuracy / 6}")
 
                 tot_label_loss = 0.
@@ -229,7 +232,7 @@ def leave_one_out_test(amount=10):
             label_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, len(classes)).to(device))
             plant_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, 48).to(device))
 
-            criterion = nn.CrossEntropyLoss()
+            criterion = nn.CrossEntropyLoss().cuda()
 
             label_opt = optim.Adam(label_cls.parameters(), lr=label_lr)
             plant_opt = optim.Adam(plant_cls.parameters(), lr=plant_lr)
