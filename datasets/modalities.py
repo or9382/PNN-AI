@@ -85,7 +85,10 @@ class ModalitiesSubset(data.Dataset):
         plant = self.plants[idx % self.num_plants]
         cycle = idx // self.num_plants
 
-        return self.data[self.data.num_plants * cycle + plant]
+        data = self.data[self.data.num_plants * cycle + plant]
+        data['plant'] = idx % self.num_plants
+
+        return data
 
     @staticmethod
     def random_split(modalities: Modalities, plants_amounts: List[int]):

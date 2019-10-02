@@ -76,7 +76,7 @@ class LWIR(data.Dataset):
         return len(positions) * self.split_cycle
 
     def __getitem__(self, idx):
-        if idx > len(self):
+        if idx >= len(self):
             raise IndexError()
 
         # the day in the cycle this sample belongs to

@@ -79,7 +79,7 @@ class VIR(data.Dataset):
         return len(positions) * self.split_cycle
 
     def __getitem__(self, idx):
-        if idx > len(self):
+        if idx >= len(self):
             raise IndexError()
 
         # the day in the cycle this sample belongs to
@@ -147,7 +147,7 @@ class VIR(data.Dataset):
 
 
 class VIR577nm(VIR):
-    def __init__(self, root_dir: str, img_len=448, split_cycle=7,
+    def __init__(self, root_dir: str, img_len=458, split_cycle=7,
                  start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
                  max_len=None, transform=None):
         super().__init__(root_dir, img_len, split_cycle, start_date, end_date, max_len, transform)
@@ -156,7 +156,7 @@ class VIR577nm(VIR):
 
 
 class VIR692nm(VIR):
-    def __init__(self, root_dir: str, img_len=448, split_cycle=7,
+    def __init__(self, root_dir: str, img_len=458, split_cycle=7,
                  start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
                  max_len=None, transform=None):
         super().__init__(root_dir, img_len, split_cycle, start_date, end_date, max_len, transform)
@@ -165,7 +165,7 @@ class VIR692nm(VIR):
 
 
 class VIR732nm(VIR):
-    def __init__(self, root_dir: str, img_len=448, split_cycle=7,
+    def __init__(self, root_dir: str, img_len=458, split_cycle=7,
                  start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
                  max_len=None, transform=None):
         super().__init__(root_dir, img_len, split_cycle, start_date, end_date, max_len, transform)
@@ -174,7 +174,7 @@ class VIR732nm(VIR):
 
 
 class VIR970nm(VIR):
-    def __init__(self, root_dir: str, img_len=448, split_cycle=7,
+    def __init__(self, root_dir: str, img_len=458, split_cycle=7,
                  start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
                  max_len=None, transform=None):
         super().__init__(root_dir, img_len, split_cycle, start_date, end_date, max_len, transform)
@@ -183,7 +183,7 @@ class VIR970nm(VIR):
 
 
 class VIRPolar(VIR):
-    def __init__(self, root_dir: str, img_len=448, split_cycle=7,
+    def __init__(self, root_dir: str, img_len=458, split_cycle=7,
                  start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
                  max_len=None, transform=None):
         super().__init__(root_dir, img_len, split_cycle, start_date, end_date, max_len, transform)
