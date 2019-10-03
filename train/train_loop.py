@@ -14,10 +14,10 @@ from model import PlantFeatureExtractor as FeatureExtractor
 use_checkpoint = False
 
 # training hyper-parameters
-epochs = 40
-label_lr = 1e-4
-plant_lr = 1e-4
-extractor_lr = 1e-4
+epochs = 25
+label_lr = 1e-3
+plant_lr = 1e-3
+extractor_lr = 1e-3
 
 domain_adapt_lr = 0.01
 
@@ -70,7 +70,7 @@ trans_polar = T.Compose([
 
 modalities = {
     'lwir': {'max_len': lwir_max_len, 'skip': skip, 'transform': trans_lwir},
-    '577nm': {'max_len': vir_max_len, 'transform': trans_577},
+    # '577nm': {'max_len': vir_max_len, 'transform': trans_577},
     '692nm': {'max_len': vir_max_len, 'transform': trans_692},
     '732nm': {'max_len': vir_max_len, 'transform': trans_732},
     '970nm': {'max_len': vir_max_len, 'transform': trans_970},
