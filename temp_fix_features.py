@@ -13,7 +13,8 @@ def add_plant_ids():
 
     n_samples = len(df)
     n_plants = len(labels)
-    plants_info = pd.Series(data=sum([list(range(n_plants)) for _ in range(ceil(n_samples / n_plants))])[:n_samples])
+    plants_info = pd.Series(
+        data=sum([list(range(n_plants)) for _ in range(ceil(n_samples / n_plants))], [])[:n_samples])
 
     df['plant'] = plants_info
 
