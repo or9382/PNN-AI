@@ -1,9 +1,17 @@
 name: PNN
-dependencies:
-  - python=3.6
+channels:
   - pytorch
+  - default
+dependencies:
+  - python=3.6.9
+  - pytorch=1.2.0
+  - matplotlib=3.1.1
+  - scikit-learn=0.21.2
+  - scipy=1.3.1
+  - seaborn=0.9.0
+  - torchvision=0.4.0
+  - pandas=0.25.1
+  - numpy=1.16.5
   - cudatoolkit=9.0
-  - scikit-learn
   - pip:
-    - torchvision
     - astar-tcn --no-dependencies
