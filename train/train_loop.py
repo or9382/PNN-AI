@@ -259,17 +259,19 @@ def main(args: argparse.Namespace):
                              train_set, test_set, train_loader, feat_ext, label_cls, plant_cls, criterion, label_opt,
                              plant_opt, ext_opt, best_loss)
 
-    if args.use_checkpoint:
+    if args.load_checkpoint:
         restore_checkpoint(test_config)
 
     train_loop(test_config)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Run the train loop.')
-    parser.add_argument('-c', '--use_checkpoint', dest='use_checkpoint', action='store_true', default=False,
-                        help='Flag for using checkpoints in the training')
     mods = list(modalities.keys())
+    parser = argparse.ArgumentParser(description='Run the train loop.')
+    parser.add_argument('-c', '--disable_checkpoint', dest='use_checkpoint', action='store_false', default=True,
+                        help='Flag for disabling checkpoints in the training.')
+    parser.add_argument('-l', '--load_checkpoint', dest='load_checkpoint', action='store_true', default=False,
+                        help='Flag for loading the checkpoint from the previous training.')
     parser.add_argument('--exclude_modalities', '--exclude', dest='excluded_modalities', nargs='*', choices=mods,
                         default=[], help=f"All of the modalities that you don't want to use. Choices are: {mods}")
     parser.add_argument('-e', '--epochs', dest='epochs', default=25, type=int,
