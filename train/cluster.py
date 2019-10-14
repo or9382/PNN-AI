@@ -59,7 +59,7 @@ def extract_features(excluded_modalities=[]):
         batch_df.loc[:, 'label'] = labels
         batch_df.loc[:, 'plant'] = plants
 
-        df = df.append(batch_df)
+        df = df.append(batch_df, ignore_index=True)
 
     df.to_csv(get_feature_file_name(excluded_modalities), index=False)
     print('Finished extraction.')
