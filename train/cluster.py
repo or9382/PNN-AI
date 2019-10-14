@@ -1,4 +1,3 @@
-
 import torch
 from torch.utils import data
 import pandas as pd
@@ -12,7 +11,6 @@ from sklearn import metrics
 
 from .train_loop import restore_checkpoint, feat_ext, dataset
 from datasets.labels import classes
-
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -32,6 +30,7 @@ def extract_features(feat_ext=feat_ext):
 
         labels = batch['label'].cpu().numpy()
         labels = list(map(lambda i: classes[i], labels))
+        plants = batch['plant']
 
         x = batch.copy()
 
@@ -42,6 +41,7 @@ def extract_features(feat_ext=feat_ext):
 
         batch_df = pd.DataFrame(data=features)
         batch_df.loc[:, 'label'] = labels
+        batch_df.loc[:, 'plant'] = plants
 
         df = df.append(batch_df)
 
@@ -53,12 +53,15 @@ def pca_features():
     pca = PCA(n_components=50)
 
     labels = df['label']
+    plants = batch['plant']
     df.drop('label', axis=1, inplace=True)
+    df.drop('plant', axis=1, inplace=True)
 
     pca_results = pca.fit_transform(df.values)
 
     df = pd.DataFrame(pca_results)
     df.loc[:, 'label'] = labels
+    df.loc[:, 'plant'] = plants
 
     df.to_csv('features.csv', index=False)
 
@@ -68,20 +71,25 @@ def plot_tsne():
     tsne = TSNE(n_components=2, verbose=True)
 
     labels = df['label']
+    plants = batch['plant']
     df.drop('label', axis=1, inplace=True)
+    df.drop('plant', axis=1, inplace=True)
 
     tsne_results = tsne.fit_transform(df.values)
     df['tsne-one'] = tsne_results[:, 0]
     df['tsne-two'] = tsne_results[:, 1]
     df['label'] = labels
+    df['plant'] = plants
 
     tsne_df = pd.DataFrame(data=tsne_results)
     tsne_df['label'] = labels
+    tsne_df['plant'] = plants
 
     fig = plt.figure()
     sns.scatterplot(
         x="tsne-one", y="tsne-two",
         hue="label",
+        style="plant",
         palette=sns.color_palette("hls", 6),
         data=df,
         legend="full",
@@ -106,6 +114,7 @@ def cluster_comp():
 
     labels = df['label']
     df.drop('label', axis=1, inplace=True)
+    df.drop('plant', axis=1, inplace=True)
 
     print("KMeans:")
     kmeans = cluster.KMeans(n_clusters=n_clusters, n_init=100).fit(df.values)
