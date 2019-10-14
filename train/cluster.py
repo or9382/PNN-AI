@@ -190,9 +190,9 @@ if __name__ == '__main__':
                              help="""If a positive number is inputted,
                              the features will be transformed by PCA with that number of components.
                              Otherwise there won't be any use of PCA. 0 by default.""")
-    clusters_parser.set_defaults(
-        func=lambda args: plot_tsne(None if args.load_features else extract_features(args.excluded_modalities),
-                                    args.excluded_modalities, args.PCA)
+    tsne_parser.set_defaults(
+                func=lambda args: plot_tsne(None if args.load_features else extract_features(args.excluded_modalities),
+                                            args.excluded_modalities, args.PCA)
     )
 
     arguments = parser.parse_args()
@@ -201,4 +201,3 @@ if __name__ == '__main__':
         print("Please call this program with the -h flag.")
     else:
         arguments.func(arguments)
-
