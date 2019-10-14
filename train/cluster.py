@@ -170,7 +170,7 @@ if __name__ == '__main__':
                                             help='Compare the cluster evaluation results for the chosen modalities.')
     clusters_parser.add_argument('-c', '--num_clusters', dest='num_clusters', type=int, default=6,
                                  help='The number of clusters used in the evaluations,')
-    clusters_parser.add_argument('--exclude_modalities', '--exclude', dest='excluded_modalities', nargs='?',
+    clusters_parser.add_argument('--exclude_modalities', '--exclude', dest='excluded_modalities', nargs='*',
                                  choices=mods,
                                  default=[],
                                  help=f"All of the modalities that you don't want to use. Choices are: {mods}")
@@ -184,7 +184,7 @@ if __name__ == '__main__':
 
     # The subparser for tsne
     tsne_parser = subparsers.add_parser('plot_TSNE', help='Save a TSNE plot for the chosen modalities.')
-    tsne_parser.add_argument('--exclude_modalities', '--exclude', dest='excluded_modalities', nargs='?', choices=mods,
+    tsne_parser.add_argument('--exclude_modalities', '--exclude', dest='excluded_modalities', nargs='*', choices=mods,
                              default=[], help=f"All of the modalities that you don't want to use. Choices are: {mods}")
     tsne_parser.add_argument('-l', '--load_features', dest='load_features', action='store_true', default=False,
                              help="""Loads the features from a file when used.

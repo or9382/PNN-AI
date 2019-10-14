@@ -270,7 +270,7 @@ if __name__ == '__main__':
     parser.add_argument('-c', '--use_checkpoint', dest='use_checkpoint', action='store_true', default=False,
                         help='Flag for using checkpoints in the training')
     mods = list(modalities.keys())
-    parser.add_argument('--exclude_modalities', '--exclude', dest='excluded_modalities', nargs='?', choices=mods,
+    parser.add_argument('--exclude_modalities', '--exclude', dest='excluded_modalities', nargs='*', choices=mods,
                         default=[], help=f"All of the modalities that you don't want to use. Choices are: {mods}")
     parser.add_argument('-e', '--epochs', dest='epochs', default=25, type=int,
                         help='The number of epochs used in the training.')
