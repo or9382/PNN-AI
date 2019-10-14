@@ -48,8 +48,10 @@ def extract_features(feat_ext=feat_ext):
     df.to_csv('features.csv', index=False)
 
 
-def pca_features():
-    df = pd.read_csv('features.csv')
+def pca_features(df: pd.DataFrame = None):
+    if df is None:
+        df = pd.read_csv('features.csv')
+
     pca = PCA(n_components=50)
 
     labels = df['label']
@@ -63,11 +65,13 @@ def pca_features():
     df.loc[:, 'label'] = labels
     df.loc[:, 'plant'] = plants
 
-    df.to_csv('features.csv', index=False)
+    return df
 
 
-def plot_tsne():
-    df = pd.read_csv('features.csv')
+def plot_tsne(df: pd.DataFrame = None):
+    if df is None:
+        df = pd.read_csv('features.csv')
+
     tsne = TSNE(n_components=2, verbose=True)
 
     labels = df['label']
@@ -109,8 +113,9 @@ def eval_cluster(labels_true, labels_pred):
     print(f"\tV-measure: {v_measure}")
 
 
-def cluster_comp():
-    df = pd.read_csv('tsne2d.csv')
+def cluster_comp(df: pd.DataFrame = None):
+    if df is None:
+        df = pd.read_csv('features.csv')
 
     labels = df['label']
     df.drop('label', axis=1, inplace=True)
