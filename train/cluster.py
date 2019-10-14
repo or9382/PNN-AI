@@ -170,7 +170,8 @@ if __name__ == '__main__':
                                             help='Compare the cluster evaluation results for the chosen modalities.')
     clusters_parser.add_argument('-c', '--num_clusters', dest='num_clusters', type=int, default=6,
                                  help='The number of clusters used in the evaluations,')
-    clusters_parser.add_argument('--excluded_modalities', dest='excluded_modalities', nargs='?', choices=mods,
+    clusters_parser.add_argument('--exclude_modalities', '--exclude', dest='excluded_modalities', nargs='?',
+                                 choices=mods,
                                  default=[],
                                  help=f"All of the modalities that you don't want to use. Choices are: {mods}")
     clusters_parser.add_argument('-l', '--load_features', dest='load_features', action='store_true', default=False,
@@ -183,8 +184,8 @@ if __name__ == '__main__':
 
     # The subparser for tsne
     tsne_parser = subparsers.add_parser('plot_TSNE', help='Save a TSNE plot for the chosen modalities.')
-    tsne_parser.add_argument('--excluded_modalities', dest='excluded_modalities', nargs='?', choices=mods, default=[],
-                             help=f"All of the modalities that you don't want to use. Choices are: {mods}")
+    tsne_parser.add_argument('--exclude_modalities', '--exclude', dest='excluded_modalities', nargs='?', choices=mods,
+                             default=[], help=f"All of the modalities that you don't want to use. Choices are: {mods}")
     tsne_parser.add_argument('-l', '--load_features', dest='load_features', action='store_true', default=False,
                              help="""Loads the features from a file when used.
                                     Otherwise they are computed from the extractor and saved in a csv file.""")
@@ -193,8 +194,8 @@ if __name__ == '__main__':
                              the features will be transformed by PCA with that number of components.
                              Otherwise there won't be any use of PCA. 0 by default.""")
     tsne_parser.set_defaults(
-                func=lambda args: plot_tsne(None if args.load_features else extract_features(args.excluded_modalities),
-                                            args.excluded_modalities, args.PCA)
+        func=lambda args: plot_tsne(None if args.load_features else extract_features(args.excluded_modalities),
+                                    args.excluded_modalities, args.PCA)
     )
 
     arguments = parser.parse_args()
