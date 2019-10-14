@@ -46,7 +46,7 @@ def extract_features(excluded_modalities=[]):
 
         labels = batch['label'].cpu().numpy()
         labels = list(map(lambda i: classes[i], labels))
-        plants = batch['plant']
+        plants = batch['plant'].cpu().numpy()
 
         x = batch.copy()
 
@@ -62,6 +62,7 @@ def extract_features(excluded_modalities=[]):
         df = df.append(batch_df)
 
     df.to_csv(get_feature_file_name(excluded_modalities), index=False)
+    print('Finished extraction.')
     return df
 
 
@@ -91,6 +92,7 @@ def plot_tsne(df: pd.DataFrame = None, excluded_modalities=[], pca=0):
 
     if pca > 0:
         df = pca_features(df, excluded_modalities, pca)
+        print('Finished PCA.')
 
     tsne = TSNE(n_components=2, verbose=True)
 
@@ -106,7 +108,7 @@ def plot_tsne(df: pd.DataFrame = None, excluded_modalities=[], pca=0):
     df['plant'] = plants
 
     tsne_df = pd.DataFrame(data=tsne_results)
-    tsne_df['label'] = labels
+    tsne_df.loc[:, 'label'] = labels
 
     fig = plt.figure(figsize=(25.6, 19.2))
     ax = sns.scatterplot(
