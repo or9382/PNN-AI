@@ -87,19 +87,19 @@ def plot_tsne(df: pd.DataFrame = None):
 
     tsne_df = pd.DataFrame(data=tsne_results)
     tsne_df['label'] = labels
-    tsne_df['plant'] = plants
 
     fig = plt.figure()
-    sns.scatterplot(
+    ax = sns.scatterplot(
         x="tsne-one", y="tsne-two",
-        hue="plant",
-        palette=sns.color_palette("hls", len(plants.unique())),
-        style="label",
-        style_order=['o', '^', '8', 's', 'p', '*'],
+        hue="label",
+        palette=sns.color_palette("hls", 6),
         data=df,
         legend="full",
         alpha=0.3,
     )
+
+    for x, y, plant in zip(df['tsne-one'], df['tsne-two'], plants):
+        ax.annotate(str(plant), x, y)
 
     fig.savefig('clusters')
     tsne_df.to_csv('tsne2d.csv', index=False)
