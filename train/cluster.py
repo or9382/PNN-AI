@@ -53,7 +53,7 @@ def pca_features():
     pca = PCA(n_components=50)
 
     labels = df['label']
-    plants = batch['plant']
+    plants = df['plant']
     df.drop('label', axis=1, inplace=True)
     df.drop('plant', axis=1, inplace=True)
 
@@ -71,7 +71,7 @@ def plot_tsne():
     tsne = TSNE(n_components=2, verbose=True)
 
     labels = df['label']
-    plants = batch['plant']
+    plants = df['plant']
     df.drop('label', axis=1, inplace=True)
     df.drop('plant', axis=1, inplace=True)
 
