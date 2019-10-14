@@ -99,7 +99,7 @@ def plot_tsne(df: pd.DataFrame = None):
     )
 
     for x, y, plant in zip(df['tsne-one'], df['tsne-two'], plants):
-        ax.annotate(str(plant), x, y)
+        ax.annotate(str(plant), (x, y))
 
     fig.savefig('clusters')
     tsne_df.to_csv('tsne2d.csv', index=False)
