@@ -161,7 +161,7 @@ def cluster_comp(df: pd.DataFrame = None, excluded_modalities=[], num_clusters=6
 if __name__ == '__main__':
     mods = list(modalities.keys())
     parser = argparse.ArgumentParser(description='Run the clustering program.')
-    subparsers = parser.add_subparsers(title='Subcommands', description='compare_clusters, plot_TSNE, extract_features')
+    subparsers = parser.add_subparsers(title='Subcommands', description='compare_clusters, plot_TSNE')
 
     # The subparser for the clustering
     clusters_parser = subparsers.add_parser('compare_clusters',
@@ -196,4 +196,9 @@ if __name__ == '__main__':
     )
 
     arguments = parser.parse_args()
-    arguments.func(arguments)
+
+    if len(vars(arguments)) == 0:
+        print("Please call this program with the -h flag.")
+    else:
+        arguments.func(arguments)
+
