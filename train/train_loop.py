@@ -70,11 +70,11 @@ trans_polar = T.Compose([
 
 modalities = {
     'lwir': {'max_len': lwir_max_len, 'skip': skip, 'transform': trans_lwir},
-    # '577nm': {'max_len': vir_max_len, 'transform': trans_577},
+    '577nm': {'max_len': vir_max_len, 'transform': trans_577},
     '692nm': {'max_len': vir_max_len, 'transform': trans_692},
     '732nm': {'max_len': vir_max_len, 'transform': trans_732},
     '970nm': {'max_len': vir_max_len, 'transform': trans_970},
-    'polar': {'max_len': vir_max_len, 'transform': trans_polar}
+    # 'polar': {'max_len': vir_max_len, 'transform': trans_polar}
 }
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
