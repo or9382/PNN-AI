@@ -139,7 +139,7 @@ def test_model(test_config: TestConfig):
             'plant_cls_state_dict': test_config.plant_cls.state_dict(),
             'loss': test_config.best_loss,
             'accuracy': accuracy
-        }, 'checkpoint')
+        }, test_config.checkpoint_name)
 
     return tot_accuracy / len(test_config.test_set), tot_label_loss / len(test_config.test_set)
 
