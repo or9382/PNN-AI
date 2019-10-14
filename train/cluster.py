@@ -92,9 +92,10 @@ def plot_tsne(df: pd.DataFrame = None):
     fig = plt.figure()
     sns.scatterplot(
         x="tsne-one", y="tsne-two",
-        hue="label",
-        style="plant",
-        palette=sns.color_palette("hls", 6),
+        hue="plant",
+        palette=sns.color_palette("hls", len(plants.unique())),
+        style="label",
+        style_order=['o', '^', '8', 's', 'p', '*'],
         data=df,
         legend="full",
         alpha=0.3,
