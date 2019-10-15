@@ -267,7 +267,7 @@ def main(args: argparse.Namespace):
 # lwir_skip = 5
 
 if __name__ == '__main__':
-    mods = list(experiments_info['EX0'].modalities_norms.keys())
+    mods = list(experiments_info['EXP0'].modalities_norms.keys())
     parser = argparse.ArgumentParser(description='Run the train loop.')
     parser.add_argument('-c', '--disable_checkpoints', dest='use_checkpoints', action='store_false', default=True,
                         help='Flag for disabling checkpoints in the training.')
