@@ -1,11 +1,13 @@
 import torch
 from torch import nn, optim
 from torch.utils import data
+import torch.nn.functional as F
 import argparse
 
 from datasets import Modalities, ModalitiesSubset, classes
 from datasets.transformations import *
 from datasets.experiments import get_experiment_modalities, experiments_info
+import datasets.labels as datasets_labels
 from model import PlantFeatureExtractor as FeatureExtractor
 from .utils import get_checkpoint_name, get_used_modalities
 
@@ -91,7 +93,7 @@ def test_model(test_config: TestConfig):
     test_config.label_cls.eval()
     test_config.plant_cls.eval()
 
-    tot_accuracy = 0.
+    tot_correct = 0.
     tot_label_loss = 0.
     with torch.no_grad():
         for batch in test_loader:
@@ -108,14 +110,14 @@ def test_model(test_config: TestConfig):
 
             features: torch.Tensor = test_config.feat_ext(**x)
             label_out = test_config.label_cls(features)
-            label_loss = test_config.criterion(label_out, labels)
+            label_loss = test_config.criterion(label_out, labels, reduction='sum')
 
             equality = (labels.data == label_out.max(dim=1)[1])
-            tot_accuracy += equality.float().mean().item()
+            tot_correct += equality.float().sum().item()
             tot_label_loss += label_loss.item()
 
-    accuracy = tot_accuracy / (len(test_config.test_set) / test_config.batch_size)
-    loss = tot_label_loss / (len(test_config.test_set) / test_config.batch_size)
+    accuracy = tot_correct / len(test_config.test_set)
+    loss = tot_label_loss / len(test_config.test_set)
     print(f"\t\tlabel accuracy - {accuracy}")
     print(f"\t\tlabel loss - {loss}")
 
@@ -131,7 +133,38 @@ def test_model(test_config: TestConfig):
             'accuracy': accuracy
         }, test_config.checkpoint_name)
 
-    return tot_accuracy / len(test_config.test_set), tot_label_loss / len(test_config.test_set)
+    return accuracy, loss
+
+
+def calculate_domain_transfer_mse(test_config: TestConfig):
+    print("\tCalculating domain transfer residual error:")
+    test_loader = data.DataLoader(test_config.dataset, batch_size=test_config.batch_size, num_workers=2, shuffle=True)
+
+    test_config.feat_ext.eval()
+    test_config.label_cls.eval()
+    test_config.plant_cls.eval()
+
+    tot_error = 0.
+    with torch.no_grad():
+        for batch in test_loader:
+
+            for key in batch:
+                batch[key] = batch[key].to(test_config.device)
+
+            plant_labels = batch['plant']
+
+            x = batch.copy()
+
+            del x['label']
+            del x['plant']
+
+            features: torch.Tensor = test_config.feat_ext(**x)
+            plant_pred = test_config.plant_cls(features)
+            plant_labels_one_hot = F.one_hot(plant_labels, num_classes=len(datasets_labels.labels)).float()
+
+            tot_error += F.mse_loss(plant_pred, plant_labels_one_hot, reduction='sum').item()
+
+    print(f"\t\tTotal error - {tot_error}")
 
 
 def train_loop(test_config: TestConfig):
@@ -193,6 +226,8 @@ def train_loop(test_config: TestConfig):
                 tot_accuracy = 0.
 
         test_model(test_config)
+
+    calculate_domain_transfer_mse(test_config)
 
 
 def restore_checkpoint(test_config: TestConfig):
