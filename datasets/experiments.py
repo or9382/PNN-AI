@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import NamedTuple, Dict, Tuple, List
 import torchvision.transforms as T
+from .transformations import RandomCrop, RandomHorizontalFlip, RandomVerticalFlip
 
 
 class ExpInfo(NamedTuple):
@@ -14,8 +15,8 @@ def get_experiment_modalities(exp_info: ExpInfo, lwir_skip: int, lwir_max_len: i
         'lwir': {
             'max_len': lwir_max_len, 'skip': lwir_skip, 'transform': T.Compose(
                 [T.Normalize(*exp_info.modalities_norms['lwir']), T.ToPILImage(),
-                 T.RandomCrop(lwir_max_len, (206, 206)), T.RandomHorizontalFlip(lwir_max_len),
-                 T.RandomVerticalFlip(lwir_max_len), T.ToTensor()])
+                 RandomCrop(lwir_max_len, (206, 206)), RandomHorizontalFlip(lwir_max_len),
+                 RandomVerticalFlip(lwir_max_len), T.ToTensor()])
         }
     }
 
@@ -24,8 +25,8 @@ def get_experiment_modalities(exp_info: ExpInfo, lwir_skip: int, lwir_max_len: i
             mod: {
                 'max_len': vir_max_len, 'transform': T.Compose(
                     [T.Normalize(*norms), T.ToPILImage(),
-                     T.RandomCrop(vir_max_len, (412, 412)), T.RandomHorizontalFlip(vir_max_len),
-                     T.RandomVerticalFlip(vir_max_len), T.ToTensor()])
+                     RandomCrop(vir_max_len, (412, 412)), RandomHorizontalFlip(vir_max_len),
+                     RandomVerticalFlip(vir_max_len), T.ToTensor()])
             } for mod, norms in exp_info.modalities_norms.items() if mod != 'lwir'
         }
     )
