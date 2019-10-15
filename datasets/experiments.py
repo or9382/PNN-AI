@@ -13,7 +13,7 @@ def get_experiment_modalities(exp_info: ExpInfo, lwir_skip: int, lwir_max_len: i
     modalities: Dict[str, Dict] = {
         'lwir': {
             'max_len': lwir_max_len, 'skip': lwir_skip, 'transform': T.Compose(
-                [T.Normalize(*[[norm] for norm in exp_info.modalities_norms['lwir']]), T.ToPILImage(),
+                [T.Normalize(*exp_info.modalities_norms['lwir']), T.ToPILImage(),
                  T.RandomCrop(lwir_max_len, (206, 206)), T.RandomHorizontalFlip(lwir_max_len),
                  T.RandomVerticalFlip(lwir_max_len), T.ToTensor()])
         }
@@ -23,7 +23,7 @@ def get_experiment_modalities(exp_info: ExpInfo, lwir_skip: int, lwir_max_len: i
         {
             mod: {
                 'max_len': vir_max_len, 'transform': T.Compose(
-                    [T.Normalize(*[[norm] for norm in norms]), T.ToPILImage(),
+                    [T.Normalize(*norms), T.ToPILImage(),
                      T.RandomCrop(vir_max_len, (412, 412)), T.RandomHorizontalFlip(vir_max_len),
                      T.RandomVerticalFlip(vir_max_len), T.ToTensor()])
             } for mod, norms in exp_info.modalities_norms.items() if mod != 'lwir'
