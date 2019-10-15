@@ -224,8 +224,7 @@ def main(args: argparse.Namespace):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     curr_experiment = experiments_info['EXP0']
-    modalities = get_experiment_modalities(curr_experiment, args.lwir_skip, args.lwir_max_len, args.vir_max_len,
-                                           args.split_cycle)
+    modalities = get_experiment_modalities(curr_experiment, args.lwir_skip, args.lwir_max_len, args.vir_max_len,)
     used_modalities = get_used_modalities(modalities, args.excluded_modalities)
 
     dataset = Modalities('Exp0', split_cycle=args.split_cycle, start_date=curr_experiment.start_date,
