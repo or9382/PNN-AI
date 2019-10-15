@@ -110,7 +110,7 @@ def test_model(test_config: TestConfig):
 
             features: torch.Tensor = test_config.feat_ext(**x)
             label_out = test_config.label_cls(features)
-            label_loss = test_config.criterion(label_out, labels, reduction='sum')
+            label_loss = test_config.criterion(label_out, labels)
 
             equality = (labels.data == label_out.max(dim=1)[1])
             tot_correct += equality.float().sum().item()
@@ -275,7 +275,7 @@ def main(args: argparse.Namespace):
     label_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, len(classes)).to(device))
     plant_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, train_set.num_plants).to(device))
 
-    criterion = nn.CrossEntropyLoss().cuda()
+    criterion = nn.CrossEntropyLoss(reduction='sum').cuda()
 
     label_opt = optim.Adam(label_cls.parameters(), lr=label_lr)
     plant_opt = optim.Adam(plant_cls.parameters(), lr=plant_lr)
