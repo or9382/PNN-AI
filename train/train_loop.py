@@ -1,23 +1,21 @@
-from datetime import datetime
-import os
 import torch
 from torch import nn, optim
 from torch.utils import data
-import torchvision.transforms as T
 import argparse
 
 from datasets import Modalities, ModalitiesSubset, classes
 from datasets.transformations import *
+from datasets.experiments import get_experiment_modalities, experiments_info
 from model import PlantFeatureExtractor as FeatureExtractor
 from .utils import get_checkpoint_name, get_used_modalities
 
 
 # define test config
 class TestConfig:
-    def __init__(self, use_checkpoint, checkpoint_name, epochs, batch_size, domain_adapt_lr, device, dataset, train_set,
-                 test_set,
-                 train_loader, feat_ext, label_cls, plant_cls, criterion, label_opt, plant_opt, ext_opt, best_loss):
-        self.use_checkpoint = use_checkpoint
+    def __init__(self, use_checkpoints, checkpoint_name, epochs, batch_size, domain_adapt_lr, device, dataset,
+                 train_set, test_set, train_loader, feat_ext, label_cls, plant_cls, criterion, label_opt, plant_opt,
+                 ext_opt, best_loss):
+        self.use_checkpoints = use_checkpoints
         self.checkpoint_name = checkpoint_name
         self.epochs = epochs
         self.batch_size = batch_size
@@ -38,58 +36,50 @@ class TestConfig:
         self.best_loss = best_loss
 
 
-# dataset parameters
-start_date = datetime(2019, 6, 5)
-end_date = datetime(2019, 6, 19)
-split_cycle = 7
-lwir_max_len = 44
-skip = 5
-vir_max_len = 6
-
-trans_lwir = T.Compose([
-    T.Normalize([21361.], [481.]), T.ToPILImage(),
-    RandomCrop(lwir_max_len, (206, 206)), RandomHorizontalFlip(lwir_max_len),
-    RandomVerticalFlip(lwir_max_len), T.ToTensor()
-])
-
-trans_577 = T.Compose([
-    T.Normalize([.00607], [.00773]), T.ToPILImage(),
-    RandomCrop(vir_max_len, (412, 412)), RandomHorizontalFlip(vir_max_len),
-    RandomVerticalFlip(vir_max_len), T.ToTensor()
-])
-
-trans_692 = T.Compose([
-    T.Normalize([.02629], [.04364]), T.ToPILImage(),
-    RandomCrop(vir_max_len, (412, 412)), RandomHorizontalFlip(vir_max_len),
-    RandomVerticalFlip(vir_max_len), T.ToTensor()
-])
-
-trans_732 = T.Compose([
-    T.Normalize([.01072], [.11680]), T.ToPILImage(),
-    RandomCrop(vir_max_len, (412, 412)), RandomHorizontalFlip(vir_max_len),
-    RandomVerticalFlip(vir_max_len), T.ToTensor()
-])
-
-trans_970 = T.Compose([
-    T.Normalize([.00125], [.00095]), T.ToPILImage(),
-    RandomCrop(vir_max_len, (412, 412)), RandomHorizontalFlip(vir_max_len),
-    RandomVerticalFlip(vir_max_len), T.ToTensor()
-])
-
-trans_polar = T.Compose([
-    T.Normalize([.05136], [.22331]), T.ToPILImage(),
-    RandomCrop(vir_max_len, (412, 412)), RandomHorizontalFlip(vir_max_len),
-    RandomVerticalFlip(vir_max_len), T.ToTensor()
-])
-
-modalities = {
-    'lwir': {'max_len': lwir_max_len, 'skip': skip, 'transform': trans_lwir},
-    '577nm': {'max_len': vir_max_len, 'transform': trans_577},
-    '692nm': {'max_len': vir_max_len, 'transform': trans_692},
-    '732nm': {'max_len': vir_max_len, 'transform': trans_732},
-    '970nm': {'max_len': vir_max_len, 'transform': trans_970},
-    'polar': {'max_len': vir_max_len, 'transform': trans_polar}
-}
+# trans_lwir = T.Compose([
+#     T.Normalize([21361.], [481.]), T.ToPILImage(),
+#     RandomCrop(lwir_max_len, (206, 206)), RandomHorizontalFlip(lwir_max_len),
+#     RandomVerticalFlip(lwir_max_len), T.ToTensor()
+# ])
+#
+# trans_577 = T.Compose([
+#     T.Normalize([.00607], [.00773]), T.ToPILImage(),
+#     RandomCrop(vir_max_len, (412, 412)), RandomHorizontalFlip(vir_max_len),
+#     RandomVerticalFlip(vir_max_len), T.ToTensor()
+# ])
+#
+# trans_692 = T.Compose([
+#     T.Normalize([.02629], [.04364]), T.ToPILImage(),
+#     RandomCrop(vir_max_len, (412, 412)), RandomHorizontalFlip(vir_max_len),
+#     RandomVerticalFlip(vir_max_len), T.ToTensor()
+# ])
+#
+# trans_732 = T.Compose([
+#     T.Normalize([.01072], [.11680]), T.ToPILImage(),
+#     RandomCrop(vir_max_len, (412, 412)), RandomHorizontalFlip(vir_max_len),
+#     RandomVerticalFlip(vir_max_len), T.ToTensor()
+# ])
+#
+# trans_970 = T.Compose([
+#     T.Normalize([.00125], [.00095]), T.ToPILImage(),
+#     RandomCrop(vir_max_len, (412, 412)), RandomHorizontalFlip(vir_max_len),
+#     RandomVerticalFlip(vir_max_len), T.ToTensor()
+# ])
+#
+# trans_polar = T.Compose([
+#     T.Normalize([.05136], [.22331]), T.ToPILImage(),
+#     RandomCrop(vir_max_len, (412, 412)), RandomHorizontalFlip(vir_max_len),
+#     RandomVerticalFlip(vir_max_len), T.ToTensor()
+# ])
+#
+# modalities = {
+#     'lwir': {'max_len': lwir_max_len, 'skip': skip, 'transform': trans_lwir},
+#     '577nm': {'max_len': vir_max_len, 'transform': trans_577},
+#     '692nm': {'max_len': vir_max_len, 'transform': trans_692},
+#     '732nm': {'max_len': vir_max_len, 'transform': trans_732},
+#     '970nm': {'max_len': vir_max_len, 'transform': trans_970},
+#     'polar': {'max_len': vir_max_len, 'transform': trans_polar}
+# }
 
 
 def test_model(test_config: TestConfig):
@@ -129,7 +119,7 @@ def test_model(test_config: TestConfig):
     print(f"\t\tlabel accuracy - {accuracy}")
     print(f"\t\tlabel loss - {loss}")
 
-    if test_config.use_checkpoint and loss < test_config.best_loss:
+    if test_config.use_checkpoints and loss < test_config.best_loss:
         test_config.best_loss = loss
 
         print(f'\t\tsaving model with new best loss {test_config.best_loss}')
@@ -233,9 +223,13 @@ def main(args: argparse.Namespace):
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
+    curr_experiment = experiments_info['EXP0']
+    modalities = get_experiment_modalities(curr_experiment, args.lwir_skip, args.lwir_max_len, args.vir_max_len,
+                                           args.split_cycle)
     used_modalities = get_used_modalities(modalities, args.excluded_modalities)
 
-    dataset = Modalities('Exp0', split_cycle=split_cycle, start_date=start_date, end_date=end_date, **used_modalities)
+    dataset = Modalities('Exp0', split_cycle=args.split_cycle, start_date=curr_experiment.start_date,
+                         end_date=curr_experiment.end_date, **used_modalities)
 
     train_amount = int(args.train_ratio * dataset.num_plants)
     test_amount = dataset.num_plants - train_amount
@@ -255,7 +249,8 @@ def main(args: argparse.Namespace):
 
     best_loss = float('inf')
 
-    test_config = TestConfig(args.use_checkpoint, checkpoint_name, epochs, batch_size, domain_adapt_lr, device, dataset,
+    test_config = TestConfig(args.use_checkpoints, checkpoint_name, epochs, batch_size, domain_adapt_lr, device,
+                             dataset,
                              train_set, test_set, train_loader, feat_ext, label_cls, plant_cls, criterion, label_opt,
                              plant_opt, ext_opt, best_loss)
 
@@ -265,16 +260,22 @@ def main(args: argparse.Namespace):
     train_loop(test_config)
 
 
+# # dataset parameters
+#
+# lwir_max_len = 44
+# vir_max_len = 6
+# lwir_skip = 5
+
 if __name__ == '__main__':
-    mods = list(modalities.keys())
+    mods = list(experiments_info['EX0'].modalities_norms.keys())
     parser = argparse.ArgumentParser(description='Run the train loop.')
-    parser.add_argument('-c', '--disable_checkpoint', dest='use_checkpoint', action='store_false', default=True,
+    parser.add_argument('-c', '--disable_checkpoints', dest='use_checkpoints', action='store_false', default=True,
                         help='Flag for disabling checkpoints in the training.')
     parser.add_argument('-l', '--load_checkpoint', dest='load_checkpoint', action='store_true', default=False,
                         help='Flag for loading the checkpoint from the previous training.')
     parser.add_argument('--exclude_modalities', '--exclude', dest='excluded_modalities', nargs='*', choices=mods,
                         default=[], help=f"All of the modalities that you don't want to use. Choices are: {mods}")
-    parser.add_argument('-e', '--epochs', dest='epochs', default=25, type=int,
+    parser.add_argument('--epochs', dest='epochs', default=25, type=int,
                         help='The number of epochs used in the training.')
     parser.add_argument('--domain_adapt_lr', dest='domain_adapt_lr', type=float, default=0.01,
                         help='The coefficient used in the domain adaptation.')
@@ -288,6 +289,23 @@ if __name__ == '__main__':
                         help='The ratio of the dataset that will be used for training.')
     parser.add_argument('-b', '--batch_size', dest='batch_size', type=int, default=4,
                         help='The batch size for the training.')
+    parser.add_argument('-s', '--split_cycle', dest='split_cycle', type=int, default=7,
+                        help="The number of samples that each plant in the dataset will be split into.")
+    parser.add_argument('--lwir_max_len', dest='lwir_max_len', type=int, nargs='?', const=44, default=None,
+                        help="""The maximum number of images in a single lwir sample.
+                        If not used it is unlimited, and if used with no number (i.e using --lwir_max_len with no value)
+                        it will have a default of 44.""")
+    parser.add_argument('--vir_max_len', dest='vir_max_len', type=int, nargs='?', const=6, default=None,
+                        help="""The maximum number of images in a single vir sample.
+                            If not used it is unlimited,
+                            and if used with no number (i.e using --vir_max_len with no value)
+                            it will have a default of 6.""")
+    parser.add_argument('--skip', '--lwir_skip', dest='lwir_skip', type=int, nargs='?', const=5, default=1,
+                        help="""The maximum number of images in a single vir sample.
+                        If not used it is 1, and if used with no number (i.e using --lwir_skip or --skip with no value)
+                        it will have a default of 5.""")
+    # parser.add_argument('-e', '--experiment', dest='experiment', required=True, choices=['EXP0', 'EXP1', 'EXP2'],
+    #                     help='The experiment we want to use.')
 
     arguments = parser.parse_args()
     main(arguments)
