@@ -163,7 +163,7 @@ def calculate_domain_transfer_mse(test_config: TestConfig):
 
             tot_error += F.mse_loss(plant_pred, plant_labels_one_hot, reduction='sum').item()
 
-    print(f"\tTotal error - {tot_error}")
+    print(f"\tAverage error - {tot_error / len(test_config.dataset)}")
 
 
 def train_loop(test_config: TestConfig):
