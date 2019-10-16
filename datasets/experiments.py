@@ -35,7 +35,7 @@ def get_experiment_modalities(exp_info: ExpInfo, lwir_skip: int, lwir_max_len: i
 
 
 experiments_info: Dict[str, ExpInfo] = {
-    'EXP0': ExpInfo(
+    'Exp0': ExpInfo(
         datetime(2019, 6, 5),
         datetime(2019, 6, 19),
         {

@@ -3,7 +3,7 @@ classes = ('A1', 'C', 'm82', 'P', '2d', '88')
 
 # plants are indexed left to right, top to bottom
 labels = {
-    'EXP0': [
+    'Exp0': [
         0, 4, 2, 1,
         3, 5, 1, 0,
         4, 0, 0, 5,

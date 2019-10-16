@@ -29,14 +29,14 @@ positions = [
 
 class LWIR(data.Dataset):
     """
-    The LWIR data from Exp0.
+    The LWIR data from the experiment.
     """
 
     def __init__(self, root_dir: str, exp_name: str, img_len=229, split_cycle=7,
                  start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
                  skip=1, max_len=None, transform=None):
         """
-        :param root_dir: path to the Exp0 directory
+        :param root_dir: path to the experiment directory
         :param exp_name: the experiment we want to use
         :param img_len: the length that the images will be resized to
         :param split_cycle: amount of days the data will be split by

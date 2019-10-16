@@ -36,7 +36,7 @@ class VIR(data.Dataset):
                  start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
                  max_len=None, transform=None):
         """
-        :param root_dir: path to the Exp0 directory
+        :param root_dir: path to the experiment directory
         :param exp_name: the experiment we want to use
         :param img_len: the length of the images in the dataset
         :param split_cycle: amount of days the data will be split by
