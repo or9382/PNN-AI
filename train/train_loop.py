@@ -216,7 +216,7 @@ def train_loop(test_config: TestConfig):
             tot_plant_loss += plant_loss.item()
 
             num_print = 24
-            if i % num_print == 0 or i == len(test_config.train_set):
+            if i % num_print == 0 or i * test_config.batch_size == len(test_config.train_set):
                 num_since_last = num_print if i % num_print == 0 else i % num_print
                 print(f"\t{i}. label loss: {tot_label_loss / num_since_last}")
                 print(f"\t{i}. plant loss: {tot_plant_loss / num_since_last}")
