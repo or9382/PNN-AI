@@ -1,4 +1,3 @@
-
 from datetime import datetime
 import glob
 import numpy as np
@@ -8,7 +7,6 @@ from torchvision import transforms
 
 from .labels import labels
 from .exceptions import *
-
 
 # plants are indexed left to right, top to bottom
 positions = [
@@ -121,10 +119,10 @@ class VIR(data.Dataset):
     def _get_np_arr(self, vir_dir, plant_idx):
         pos = positions[plant_idx]
 
-        left = pos[0] - self.img_len//2
-        right = pos[0] + self.img_len//2
-        top = pos[1] - self.img_len//2
-        bottom = pos[1] + self.img_len//2
+        left = pos[0] - self.img_len // 2
+        right = pos[0] + self.img_len // 2
+        top = pos[1] - self.img_len // 2
+        bottom = pos[1] + self.img_len // 2
 
         image_path = glob.glob(f"{vir_dir}/*{self.vir_type}*.raw")
         if len(image_path) == 0:
@@ -146,6 +144,7 @@ class VIR(data.Dataset):
     @staticmethod
     def _get_exposure(file_name):
         return float(file_name.split('ET')[-1].split('.')[0])
+
 
 # TODO: remove the img_len=458 default param and return to (self, *args, **kwargs), this value should be somewhere else
 
