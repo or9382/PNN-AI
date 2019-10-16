@@ -295,6 +295,10 @@ def main(args: argparse.Namespace):
         restore_checkpoint(test_config)
 
     train_loop(test_config)
+
+    if args.use_checkpoints:
+        restore_checkpoint(test_config)
+
     calculate_domain_transfer_mse(test_config)
 
 
