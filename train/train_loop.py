@@ -136,7 +136,7 @@ def test_model(test_config: TestConfig):
 
 
 def calculate_domain_transfer_mse(test_config: TestConfig):
-    print("\tCalculating domain transfer residual error:")
+    print("Calculating domain transfer residual error:")
     test_loader = data.DataLoader(test_config.dataset, batch_size=test_config.batch_size, num_workers=2, shuffle=True)
 
     test_config.feat_ext.eval()
@@ -163,7 +163,7 @@ def calculate_domain_transfer_mse(test_config: TestConfig):
 
             tot_error += F.mse_loss(plant_pred, plant_labels_one_hot, reduction='sum').item()
 
-    print(f"\t\tTotal error - {tot_error}")
+    print(f"\tTotal error - {tot_error}")
 
 
 def train_loop(test_config: TestConfig):
