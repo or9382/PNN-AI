@@ -177,7 +177,7 @@ def train_loop(test_config: TestConfig):
         tot_label_loss = 0.
         tot_plant_loss = 0.
         tot_accuracy = 0.
-        for i, batch in enumerate(test_config.train_loader):
+        for i, batch in enumerate(test_config.train_loader, 1):
 
             for key in batch:
                 batch[key] = batch[key].to(test_config.device)
@@ -215,10 +215,12 @@ def train_loop(test_config: TestConfig):
             tot_label_loss += label_loss.item()
             tot_plant_loss += plant_loss.item()
 
-            if i % 24 == 23:
-                print(f"\t{i}. label loss: {tot_label_loss / 24}")
-                print(f"\t{i}. plant loss: {tot_plant_loss / 24}")
-                print(f"\t{i}. accuracy: {tot_accuracy / 24}")
+            num_print = 24
+            if i % num_print == 0 or i == len(test_config.train_set):
+                num_since_last = num_print if i % num_print == 0 else i % num_print
+                print(f"\t{i}. label loss: {tot_label_loss / num_since_last}")
+                print(f"\t{i}. plant loss: {tot_plant_loss / num_since_last}")
+                print(f"\t{i}. accuracy: {tot_accuracy / num_since_last}")
 
                 tot_label_loss = 0.
                 tot_plant_loss = 0.
