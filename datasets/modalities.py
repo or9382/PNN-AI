@@ -40,11 +40,11 @@ class Modalities(data.Dataset):
         self.modalities = dict()
 
         for mod in mods:
-            self.modalities[mod] = mod_map[mod](root_dir=root_dir, split_cycle=split_cycle,
+            self.modalities[mod] = mod_map[mod](root_dir=root_dir, exp_name=exp_name, split_cycle=split_cycle,
                                                 start_date=start_date, end_date=end_date)
 
         for mod in k_mods:
-            self.modalities[mod] = mod_map[mod](root_dir=root_dir, split_cycle=split_cycle,
+            self.modalities[mod] = mod_map[mod](root_dir=root_dir, exp_name=exp_name, split_cycle=split_cycle,
                                                 start_date=start_date, end_date=end_date, **k_mods[mod])
 
         self.transform = transform
