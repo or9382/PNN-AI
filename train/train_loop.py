@@ -130,7 +130,7 @@ def test_model(test_config: TestConfig):
             'plant_cls_state_dict': test_config.plant_cls.state_dict(),
             'loss': test_config.best_loss,
             'accuracy': accuracy
-        }, test_config.checkpoint_name)
+        }, f'checkpoints/{test_config.checkpoint_name}')
 
     return accuracy, loss
 
@@ -230,7 +230,7 @@ def train_loop(test_config: TestConfig):
 
 
 def restore_checkpoint(test_config: TestConfig):
-    checkpoint = torch.load(test_config.checkpoint_name)
+    checkpoint = torch.load(f'checkpoints/{test_config.checkpoint_name}')
     test_config.feat_ext.load_state_dict(checkpoint['feat_ext_state_dict'])
     test_config.label_cls.load_state_dict(checkpoint['label_cls_state_dict'])
     test_config.plant_cls.load_state_dict(checkpoint['plant_cls_state_dict'])

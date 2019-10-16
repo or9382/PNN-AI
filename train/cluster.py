@@ -26,7 +26,7 @@ def load_extractor(experiment_name: str, modalities: List[str], excluded_modalit
     used_modalities = get_used_modalities(modalities, excluded_modalities)
     feat_extractor = FeatureExtractor(*used_modalities).to(device)
 
-    checkpoint = torch.load(checkpoint_name)
+    checkpoint = torch.load(f'checkpoints/{checkpoint_name}')
     feat_extractor.load_state_dict(checkpoint['feat_ext_state_dict'])
 
     return feat_extractor.to(device)
@@ -64,7 +64,7 @@ def extract_features(modalities: List[str], split_cycle: int, start_date, end_da
 
         df = df.append(batch_df, ignore_index=True)
 
-    df.to_csv(get_feature_file_name(experiment_name, excluded_modalities), index=False)
+    df.to_csv(f"saved_features/{get_feature_file_name(experiment_name, excluded_modalities)}", index=False)
     print('Finished extraction.')
     return df
 
@@ -121,10 +121,12 @@ def plot_tsne(df: pd.DataFrame, experiment_name: str, excluded_modalities=[], pc
     for x, y, plant in zip(df['tsne-one'], df['tsne-two'], plants):
         ax.annotate(str(plant), (x, y), fontsize='large', ha="center")
 
-    tsne_name = get_tsne_name(experiment_name, excluded_modalities, pca)
+    tsne_name: str = get_tsne_name(experiment_name, excluded_modalities, pca)
 
-    fig.savefig(f'{tsne_name}_clusters', bbox_inches="tight")
-    tsne_df.to_csv(f'{tsne_name}2d.csv', index=False)
+    plt.title(f"{tsne_name} clusters".replace('_', ' '))
+
+    fig.savefig(f'tsne_results/{tsne_name}_clusters', bbox_inches="tight")
+    tsne_df.to_csv(f'tsne_results/{tsne_name}2d.csv', index=False)
 
 
 def eval_cluster(labels_true, labels_pred):
@@ -156,7 +158,7 @@ def cluster_comp(df: pd.DataFrame, num_clusters=6):
 
 def get_data_features(args: argparse.Namespace, modalities: List[str]):
     if args.load_features:
-        return pd.read_csv(get_feature_file_name(args.experiment, args.excluded_modalities))
+        return pd.read_csv(f"saved_features/{get_feature_file_name(args.experiment, args.excluded_modalities)}")
     else:
         curr_experiment = experiments_info[args.experiment]
         root_dir = args.experiment if args.experiment_path is None else args.experiment_path
