@@ -23,11 +23,12 @@ class Modalities(data.Dataset):
     A dataset class that lets the user decides which modalities to use.
     """
 
-    def __init__(self, root_dir: str, *mods: str, split_cycle=7,
+    def __init__(self, root_dir: str, exp_name: str, *mods: str, split_cycle=7,
                  start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
                  transform=None, **k_mods: Dict):
         """
-        :param root_dir: path to the Exp0 directory
+        :param root_dir: path to the experiment directory
+        :param exp_name: the experiment we want to use
         :param mods: modalities to be in the dataset, initialized with default arguments
         :param split_cycle: amount of days the data will be split by
         :param transform: optional transform to be applied on a sample
@@ -48,8 +49,11 @@ class Modalities(data.Dataset):
 
         self.transform = transform
 
+        self.exp_name = exp_name
+
         self.split_cycle = split_cycle
-        self.num_plants = len(labels)
+
+        self.num_plants = len(labels[exp_name])
 
     def __len__(self):
         dataset = next(iter(self.modalities.values()))
@@ -62,7 +66,7 @@ class Modalities(data.Dataset):
 
         plant = idx % self.num_plants
 
-        sample['label'] = labels[plant]
+        sample['label'] = labels[self.exp_name][plant]
         sample['plant'] = plant
 
         if self.transform:

@@ -32,11 +32,12 @@ class LWIR(data.Dataset):
     The LWIR data from Exp0.
     """
 
-    def __init__(self, root_dir: str, img_len=229, split_cycle=7,
+    def __init__(self, root_dir: str, exp_name: str, img_len=229, split_cycle=7,
                  start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
                  skip=1, max_len=None, transform=None):
         """
         :param root_dir: path to the Exp0 directory
+        :param exp_name: the experiment we want to use
         :param img_len: the length that the images will be resized to
         :param split_cycle: amount of days the data will be split by
         :param skip: how many frames to skip between ones taken
@@ -49,6 +50,8 @@ class LWIR(data.Dataset):
         self.root_dir = root_dir
         self.lwir_dirs = sorted(glob.glob(root_dir + '/*LWIR'))[::skip]
         self.lwir_dirs = self._filter_dirs(self.lwir_dirs, start_date, end_date)
+
+        self.exp_name = exp_name
 
         self.plant_crop_len = 60
         self.out_len = img_len
@@ -108,8 +111,7 @@ class LWIR(data.Dataset):
         tensors = [self.transform(tensor) for tensor in tensors]
         image = torch.cat(tensors)
 
-        sample = {'image': image, 'label': labels[plant],
-                  'position': positions[plant], 'plant': plant}
+        sample = {'image': image, 'label': labels[self.exp_name][plant], 'position': positions[plant], 'plant': plant}
 
         return sample
 
