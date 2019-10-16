@@ -147,37 +147,38 @@ class VIR(data.Dataset):
     def _get_exposure(file_name):
         return float(file_name.split('ET')[-1].split('.')[0])
 
+# TODO: remove the img_len=458 default param and return to (self, *args, **kwargs), this value should be somewhere else
 
 class VIR577nm(VIR):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, img_len=458, *args, **kwargs):
+        super().__init__(img_len=img_len, *args, **kwargs)
 
         self.vir_type = "577nm"
 
 
 class VIR692nm(VIR):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, img_len=458, *args, **kwargs):
+        super().__init__(img_len=img_len, *args, **kwargs)
 
         self.vir_type = "692nm"
 
 
 class VIR732nm(VIR):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, img_len=458, *args, **kwargs):
+        super().__init__(img_len=img_len, *args, **kwargs)
 
         self.vir_type = "732nm"
 
 
 class VIR970nm(VIR):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, img_len=458, *args, **kwargs):
+        super().__init__(img_len=img_len, *args, **kwargs)
 
         self.vir_type = "970nm"
 
 
 class VIRPolar(VIR):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, img_len=458, *args, **kwargs):
+        super().__init__(img_len=img_len, *args, **kwargs)
 
         self.vir_type = "Polarizer"
