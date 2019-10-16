@@ -10,7 +10,7 @@ class ExpInfo(NamedTuple):
     modalities_norms: Dict[str, Tuple[List[float], List[float]]]
 
 
-def get_experiment_modalities(exp_info: ExpInfo, lwir_skip: int, lwir_max_len: int, vir_max_len: int,):
+def get_experiment_modalities(exp_info: ExpInfo, lwir_skip: int, lwir_max_len: int, vir_max_len: int):
     modalities: Dict[str, Dict] = {
         'lwir': {
             'max_len': lwir_max_len, 'skip': lwir_skip, 'transform': T.Compose(
