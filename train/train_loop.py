@@ -7,9 +7,8 @@ import argparse
 from datasets import Modalities, ModalitiesSubset, classes
 from datasets.transformations import *
 from datasets.experiments import get_experiment_modalities, experiments_info
-import datasets.labels as datasets_labels
 from model import PlantFeatureExtractor as FeatureExtractor
-from .utils import get_checkpoint_name, get_used_modalities
+from .utils import get_checkpoint_name, get_used_modalities, add_experiment_dataset_arguments
 
 
 # define test config
@@ -227,8 +226,6 @@ def train_loop(test_config: TestConfig):
 
         test_model(test_config)
 
-    calculate_domain_transfer_mse(test_config)
-
 
 def restore_checkpoint(test_config: TestConfig):
     checkpoint = torch.load(test_config.checkpoint_name)
@@ -245,7 +242,7 @@ def restore_checkpoint(test_config: TestConfig):
 
 
 def main(args: argparse.Namespace):
-    checkpoint_name = get_checkpoint_name(args.excluded_modalities)
+    checkpoint_name = get_checkpoint_name(args.experiment, args.excluded_modalities)
 
     # training hyper-parameters
     epochs = args.epochs
@@ -258,12 +255,17 @@ def main(args: argparse.Namespace):
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    curr_experiment = experiments_info['EXP0']
-    modalities = get_experiment_modalities(curr_experiment, args.lwir_skip, args.lwir_max_len, args.vir_max_len,)
+    curr_experiment = experiments_info[args.experiment]
+    modalities = get_experiment_modalities(curr_experiment, args.lwir_skip, args.lwir_max_len, args.vir_max_len)
     used_modalities = get_used_modalities(modalities, args.excluded_modalities)
 
-    dataset = Modalities('Exp0', split_cycle=args.split_cycle, start_date=curr_experiment.start_date,
-                         end_date=curr_experiment.end_date, **used_modalities)
+    if args.experiment_path is None:
+        experiment_path = args.experiment
+    else:
+        experiment_path = args.experiment_path
+
+    dataset = Modalities(experiment_path, args.experiment, split_cycle=args.split_cycle,
+                         start_date=curr_experiment.start_date, end_date=curr_experiment.end_date, **used_modalities)
 
     train_amount = int(args.train_ratio * dataset.num_plants)
     test_amount = dataset.num_plants - train_amount
@@ -273,9 +275,9 @@ def main(args: argparse.Namespace):
 
     feat_ext = FeatureExtractor(*used_modalities).to(device)
     label_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, len(classes)).to(device))
-    plant_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, train_set.num_plants).to(device))
+    plant_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, dataset.num_plants).to(device))
 
-    criterion = nn.CrossEntropyLoss(reduction='sum').cuda()
+    criterion = nn.CrossEntropyLoss(reduction='sum').to(device)
 
     label_opt = optim.Adam(label_cls.parameters(), lr=label_lr)
     plant_opt = optim.Adam(plant_cls.parameters(), lr=plant_lr)
@@ -284,21 +286,15 @@ def main(args: argparse.Namespace):
     best_loss = float('inf')
 
     test_config = TestConfig(args.use_checkpoints, checkpoint_name, epochs, batch_size, domain_adapt_lr, device,
-                             dataset,
-                             train_set, test_set, train_loader, feat_ext, label_cls, plant_cls, criterion, label_opt,
-                             plant_opt, ext_opt, best_loss)
+                             dataset, train_set, test_set, train_loader, feat_ext, label_cls, plant_cls, criterion,
+                             label_opt, plant_opt, ext_opt, best_loss)
 
     if args.load_checkpoint:
         restore_checkpoint(test_config)
 
     train_loop(test_config)
+    calculate_domain_transfer_mse(test_config)
 
-
-# # dataset parameters
-#
-# lwir_max_len = 44
-# vir_max_len = 6
-# lwir_skip = 5
 
 if __name__ == '__main__':
     mods = list(experiments_info['EXP0'].modalities_norms.keys())
@@ -323,23 +319,7 @@ if __name__ == '__main__':
                         help='The ratio of the dataset that will be used for training.')
     parser.add_argument('-b', '--batch_size', dest='batch_size', type=int, default=4,
                         help='The batch size for the training.')
-    parser.add_argument('-s', '--split_cycle', dest='split_cycle', type=int, default=7,
-                        help="The number of samples that each plant in the dataset will be split into.")
-    parser.add_argument('--lwir_max_len', dest='lwir_max_len', type=int, nargs='?', const=44, default=None,
-                        help="""The maximum number of images in a single lwir sample.
-                        If not used it is unlimited, and if used with no number (i.e using --lwir_max_len with no value)
-                        it will have a default of 44.""")
-    parser.add_argument('--vir_max_len', dest='vir_max_len', type=int, nargs='?', const=6, default=None,
-                        help="""The maximum number of images in a single vir sample.
-                            If not used it is unlimited,
-                            and if used with no number (i.e using --vir_max_len with no value)
-                            it will have a default of 6.""")
-    parser.add_argument('--skip', '--lwir_skip', dest='lwir_skip', type=int, nargs='?', const=5, default=1,
-                        help="""The maximum number of images in a single vir sample.
-                        If not used it is 1, and if used with no number (i.e using --lwir_skip or --skip with no value)
-                        it will have a default of 5.""")
-    # parser.add_argument('-e', '--experiment', dest='experiment', required=True, choices=['EXP0', 'EXP1', 'EXP2'],
-    #                     help='The experiment we want to use.')
+    add_experiment_dataset_arguments(parser)
 
     arguments = parser.parse_args()
     main(arguments)
