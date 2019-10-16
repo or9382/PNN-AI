@@ -165,7 +165,7 @@ def get_data_features(args: argparse.Namespace, modalities: List[str]):
 
 
 if __name__ == '__main__':
-    mods = list(experiments_info['EXP0'].modalities_norms.keys())
+    mods = list(experiments_info['Exp0'].modalities_norms.keys())
     parser = argparse.ArgumentParser(description='Run the clustering program.')
     subparsers = parser.add_subparsers(title='Subcommands', description='compare_clusters, plot_TSNE')
 
