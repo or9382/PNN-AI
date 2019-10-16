@@ -160,7 +160,7 @@ def calculate_domain_transfer_mse(test_config: TestConfig):
 
             features: torch.Tensor = test_config.feat_ext(**x)
             plant_pred = test_config.plant_cls(features)
-            plant_labels_one_hot = F.one_hot(plant_labels, num_classes=len(datasets_labels.labels)).float()
+            plant_labels_one_hot = F.one_hot(plant_labels, num_classes=test_config.dataset.num_plants).float()
 
             tot_error += F.mse_loss(plant_pred, plant_labels_one_hot, reduction='sum').item()
 
