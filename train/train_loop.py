@@ -276,14 +276,14 @@ def main(args: argparse.Namespace):
     train_loader = data.DataLoader(train_set, batch_size=batch_size, num_workers=2, shuffle=True)
 
     feat_ext = FeatureExtractor(*used_modalities).to(device)
-    label_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, len(classes)).to(device))
-    plant_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, dataset.num_plants).to(device))
+    label_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, len(classes))).to(device)
+    plant_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, dataset.num_plants)).to(device)
 
     criterion = nn.CrossEntropyLoss(reduction='sum').to(device)
 
-    label_opt = optim.Adam(label_cls.parameters(), lr=label_lr)
-    plant_opt = optim.Adam(plant_cls.parameters(), lr=plant_lr)
-    ext_opt = optim.Adam(feat_ext.parameters(), lr=extractor_lr)
+    label_opt = optim.SGD(label_cls.parameters(), lr=label_lr, weight_decay=1e-3)
+    plant_opt = optim.SGD(plant_cls.parameters(), lr=plant_lr, weight_decay=1e-3)
+    ext_opt = optim.SGD(feat_ext.parameters(), lr=extractor_lr, weight_decay=1e-3)
 
     best_loss = float('inf')
 
@@ -313,15 +313,15 @@ if __name__ == '__main__':
                         default=[], help=f"All of the modalities that you don't want to use. Choices are: {mods}")
     parser.add_argument('--epochs', dest='epochs', default=25, type=int,
                         help='The number of epochs used in the training.')
-    parser.add_argument('--domain_adapt_lr', dest='domain_adapt_lr', type=float, default=0.01,
+    parser.add_argument('--domain_adapt_lr', dest='domain_adapt_lr', type=float, default=1e-2,
                         help='The coefficient used in the domain adaptation.')
-    parser.add_argument('--label_lr', dest='label_lr', type=float, default=1e-3,
+    parser.add_argument('--label_lr', dest='label_lr', type=float, default=1e-2,
                         help='The learning rate for the phenotype classifier.')
-    parser.add_argument('--plant_lr', dest='plant_lr', type=float, default=1e-3,
+    parser.add_argument('--plant_lr', dest='plant_lr', type=float, default=1e-2,
                         help='The learning rate for the plant classifier used in the transfer learning.')
-    parser.add_argument('--extractor_lr', dest='extractor_lr', type=float, default=1e-3,
+    parser.add_argument('--extractor_lr', dest='extractor_lr', type=float, default=1e-2,
                         help='The learning rate for the feature extractor.')
-    parser.add_argument('-t', '--train_ratio', dest='train_ratio', type=float, default=0.75,
+    parser.add_argument('-t', '--train_ratio', dest='train_ratio', type=float, default=5/6,
                         help='The ratio of the dataset that will be used for training.')
     parser.add_argument('-b', '--batch_size', dest='batch_size', type=int, default=4,
                         help='The batch size for the training.')
