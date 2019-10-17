@@ -35,6 +35,7 @@ class TestConfig:
         self.plant_opt = plant_opt
         self.ext_opt = ext_opt
         self.best_loss = best_loss
+        self.epochs_with_no_improvement = 0
 
 
 # trans_lwir = T.Compose([
@@ -120,17 +121,24 @@ def test_model(test_config: TestConfig):
     print(f"\t\tlabel accuracy - {accuracy}")
     print(f"\t\tlabel loss - {loss}")
 
-    if test_config.use_checkpoints and loss < test_config.best_loss:
-        test_config.best_loss = loss
+    if test_config.use_checkpoints:
+        if loss < test_config.best_loss:
+            test_config.best_loss = loss
 
-        print(f'\t\tsaving model with new best loss {test_config.best_loss}')
-        torch.save({
-            'feat_ext_state_dict': test_config.feat_ext.state_dict(),
-            'label_cls_state_dict': test_config.label_cls.state_dict(),
-            'plant_cls_state_dict': test_config.plant_cls.state_dict(),
-            'loss': test_config.best_loss,
-            'accuracy': accuracy
-        }, f'checkpoints/{test_config.checkpoint_name}')
+            print(f'\t\tsaving model with new best loss {test_config.best_loss}')
+            torch.save({
+                'feat_ext_state_dict': test_config.feat_ext.state_dict(),
+                'label_cls_state_dict': test_config.label_cls.state_dict(),
+                'plant_cls_state_dict': test_config.plant_cls.state_dict(),
+                'loss': test_config.best_loss,
+                'accuracy': accuracy
+            }, f'checkpoints/{test_config.checkpoint_name}')
+        else:
+            test_config.epochs_with_no_improvement += 1
+
+        if test_config.epochs_with_no_improvement >= 3:
+            test_config.epochs_with_no_improvement = 0
+            restore_checkpoint(test_config)
 
     return accuracy, loss
 
