@@ -13,14 +13,14 @@ from typing import List
 
 from datasets.labels import classes
 from datasets import Modalities
-from datasets.experiments import experiments_info
+from datasets.experiments import experiments_info, get_experiment_modalities
 from model.feature_extraction import PlantFeatureExtractor as FeatureExtractor
 from .utils import *
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
-def load_extractor(experiment_name: str, modalities: List[str], excluded_modalities: List[str] = []):
+def load_extractor(experiment_name: str, modalities, excluded_modalities: List[str] = []):
     checkpoint_name = get_checkpoint_name(experiment_name, excluded_modalities)
 
     used_modalities = get_used_modalities(modalities, excluded_modalities)
@@ -32,7 +32,7 @@ def load_extractor(experiment_name: str, modalities: List[str], excluded_modalit
     return feat_extractor.to(device)
 
 
-def extract_features(modalities: List[str], split_cycle: int, start_date, end_date, experiment_name: str,
+def extract_features(modalities, split_cycle: int, start_date, end_date, experiment_name: str,
                      experiment_root_dir: str, excluded_modalities: List[str] = []):
     used_modalities = get_used_modalities(modalities, excluded_modalities)
     dataset = Modalities(experiment_root_dir, experiment_name, split_cycle=split_cycle, start_date=start_date,
@@ -185,7 +185,8 @@ if __name__ == '__main__':
     add_experiment_dataset_arguments(clusters_parser)
     clusters_parser.set_defaults(
         func=lambda args: cluster_comp(
-            get_data_features(args, mods),
+            get_data_features(args, get_experiment_modalities(experiments_info[args.experiment], args.lwir_skip,
+                                                              args.lwir_max_len, args.vir_max_len)),
             args.num_clusters
         )
     )
@@ -204,7 +205,8 @@ if __name__ == '__main__':
     add_experiment_dataset_arguments(tsne_parser)
     tsne_parser.set_defaults(
         func=lambda args: plot_tsne(
-            get_data_features(args, mods),
+            get_data_features(args, get_experiment_modalities(experiments_info[args.experiment], args.lwir_skip,
+                                                              args.lwir_max_len, args.vir_max_len)),
             args.experiment,
             args.excluded_modalities,
             args.PCA
