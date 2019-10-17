@@ -129,31 +129,33 @@ def plot_tsne(df: pd.DataFrame, experiment_name: str, excluded_modalities=[], pc
     tsne_df.to_csv(f'tsne_results/{tsne_name}2d.csv', index=False)
 
 
-def eval_cluster(labels_true, labels_pred):
+def eval_cluster(labels_true, labels_pred, plants):
     print(f"\tARI: {metrics.adjusted_rand_score(labels_true, labels_pred)}")
     print(f"\tAMI: {metrics.adjusted_mutual_info_score(labels_true, labels_pred, average_method='arithmetic')}")
     homogeneity, completeness, v_measure = metrics.homogeneity_completeness_v_measure(labels_true, labels_pred)
     print(f"\tHomogeneity: {homogeneity}")
     print(f"\tCompleteness: {completeness}")
     print(f"\tV-measure: {v_measure}")
+    print(f"\tPlants Completeness: {metrics.completeness_score(plants, labels_pred)}")
 
 
 def cluster_comp(df: pd.DataFrame, num_clusters=6):
     labels = df['label']
+    plants = df['plant']
     df.drop('label', axis=1, inplace=True)
     df.drop('plant', axis=1, inplace=True)
 
     print("KMeans:")
     kmeans = cluster.KMeans(n_clusters=num_clusters, n_init=100).fit(df.values)
-    eval_cluster(labels, kmeans.labels_)
+    eval_cluster(labels, kmeans.labels_, plants)
 
     print("Spectral:")
     spectrals = cluster.SpectralClustering(n_clusters=num_clusters, assign_labels='discretize').fit(df.values)
-    eval_cluster(labels, spectrals.labels_)
+    eval_cluster(labels, spectrals.labels_, plants)
 
     print("GMM:")
     gmms = mixture.GaussianMixture(n_components=num_clusters).fit_predict(df.values)
-    eval_cluster(labels, gmms)
+    eval_cluster(labels, gmms, plants)
 
 
 def get_data_features(args: argparse.Namespace, modalities):
