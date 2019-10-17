@@ -38,7 +38,7 @@ def extract_features(modalities, split_cycle: int, start_date, end_date, experim
     dataset = Modalities(experiment_root_dir, experiment_name, split_cycle=split_cycle, start_date=start_date,
                          end_date=end_date, **used_modalities)
 
-    feat_extractor = load_extractor(experiment_name, excluded_modalities).eval()
+    feat_extractor = load_extractor(experiment_name, modalities, excluded_modalities).eval()
     dataloader = data.DataLoader(dataset, batch_size=4, num_workers=4)
 
     df = pd.DataFrame()
@@ -156,7 +156,7 @@ def cluster_comp(df: pd.DataFrame, num_clusters=6):
     eval_cluster(labels, gmms)
 
 
-def get_data_features(args: argparse.Namespace, modalities: List[str]):
+def get_data_features(args: argparse.Namespace, modalities):
     if args.load_features:
         return pd.read_csv(f"saved_features/{get_feature_file_name(args.experiment, args.excluded_modalities)}")
     else:
