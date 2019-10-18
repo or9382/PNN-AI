@@ -8,30 +8,14 @@ from torchvision import transforms
 
 from .labels import labels
 from .exceptions import *
-
-
-# plants are indexed left to right, top to bottom
-positions = [
-    (146, 105), (206, 100), (265, 97), (322, 98),
-    (413, 105), (464, 105), (517, 110), (576, 115),
-    (149, 157), (212, 152), (262, 145), (320, 142),
-    (416, 167), (468, 165), (522, 169), (575, 171),
-    (155, 207), (213, 205), (264, 204), (322, 200),
-    (417, 213), (467, 218), (522, 216), (573, 219),
-    (157, 263), (212, 261), (267, 258), (321, 260),
-    (418, 266), (470, 266), (528, 263), (574, 270),
-    (156, 317), (212, 315), (265, 315), (327, 319),
-    (418, 321), (468, 314), (522, 314), (574, 319),
-    (154, 366), (215, 368), (269, 372), (326, 374),
-    (417, 373), (465, 375), (520, 373), (573, 369)
-]
+from .experiments import plant_positions as positions
+from .transformations import RandomPNNTransform
 
 
 class LWIR(data.Dataset):
     """
     The LWIR data from the experiment.
     """
-
     def __init__(self, root_dir: str, exp_name: str, img_len=229, split_cycle=7,
                  start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
                  skip=1, max_len=None, transform=None):
@@ -52,6 +36,7 @@ class LWIR(data.Dataset):
         self.lwir_dirs = self._filter_dirs(self.lwir_dirs, start_date, end_date)
 
         self.exp_name = exp_name
+        self.num_plants = len(positions[exp_name].lwir_positions)
 
         self.plant_crop_len = 60
         self.out_len = img_len
@@ -76,15 +61,15 @@ class LWIR(data.Dataset):
         return filtered
 
     def __len__(self):
-        return len(positions) * self.split_cycle
+        return self.num_plants * self.split_cycle
 
     def __getitem__(self, idx):
         if idx >= len(self):
             raise IndexError()
 
         # the day in the cycle this sample belongs to
-        cycle_day = idx // len(positions)
-        plant = idx % len(positions)
+        cycle_day = idx // self.num_plants
+        plant = idx % self.num_plants
 
         to_tensor = transforms.ToTensor()
 
@@ -107,16 +92,21 @@ class LWIR(data.Dataset):
             except DirEmptyError:
                 pass
 
+        for t in self.transform.transforms:
+            if isinstance(t, RandomPNNTransform):
+                t.new_params()
+
         tensors = tensors[:self.max_len]
         tensors = [self.transform(tensor) for tensor in tensors]
         image = torch.cat(tensors)
 
-        sample = {'image': image, 'label': labels[self.exp_name][plant], 'position': positions[plant], 'plant': plant}
+        sample = {'image': image, 'label': labels[self.exp_name][plant],
+                  'position': positions[self.exp_name].lwir_positions[plant], 'plant': plant}
 
         return sample
 
     def _get_image(self, lwir_dir, plant_idx):
-        pos = positions[plant_idx]
+        pos = positions[self.exp_name].lwir_positions[plant_idx]
 
         left = pos[0] - self.plant_crop_len // 2
         right = pos[0] + self.plant_crop_len // 2

@@ -7,24 +7,11 @@ from torchvision import transforms
 
 from .labels import labels
 from .exceptions import *
+from .experiments import plant_positions as positions
+from .transformations import RandomPNNTransform
 
-# plants are indexed left to right, top to bottom
-positions = [
-    (1290, 670), (1730, 620), (2150, 590), (2580, 590),
-    (3230, 630), (3615, 620), (4000, 640), (4470, 620),
-    (1320, 1050), (1780, 990), (2150, 940), (2560, 910),
-    (3270, 1070), (3660, 1060), (4045, 1080), (4450, 1080),
-    (1367, 1419), (1794, 1380), (2162, 1367), (2583, 1346),
-    (3281, 1404), (3654, 1452), (4053, 1431), (4449, 1436),
-    (1389, 1823), (1793, 1803), (2195, 1767), (2580, 1776),
-    (3294, 1805), (3680, 1802), (4086, 1778), (4457, 1803),
-    (1397, 2211), (1794, 2199), (2189, 2189), (2639, 2205),
-    (3303, 2201), (3675, 2159), (4064, 2147), (4467, 2177),
-    (1386, 2582), (1821, 2588), (2219, 2597), (2642, 2607),
-    (3303, 2588), (3665, 2615), (4062, 2574), (4463, 2547)
-]
 
-img_size = (5472, 3648)
+# img_size = (5472, 3648)
 
 
 class VIR(data.Dataset):
@@ -50,6 +37,7 @@ class VIR(data.Dataset):
         self.vir_dirs = self._filter_dirs(self.vir_dirs, start_date, end_date)
 
         self.exp_name = exp_name
+        self.num_plants = len(positions[exp_name].vir_positions)
 
         self.img_len = img_len
         self.split_cycle = split_cycle
@@ -77,15 +65,15 @@ class VIR(data.Dataset):
         return filtered
 
     def __len__(self):
-        return len(positions) * self.split_cycle
+        return self.num_plants * self.split_cycle
 
     def __getitem__(self, idx):
         if idx >= len(self):
             raise IndexError()
 
         # the day in the cycle this sample belongs to
-        cycle_day = idx // len(positions)
-        plant = idx % len(positions)
+        cycle_day = idx // self.num_plants
+        plant = idx % self.num_plants
 
         tensors = []
         cur_day = self._get_day(self.vir_dirs[0])
@@ -108,16 +96,21 @@ class VIR(data.Dataset):
             except DirEmptyError:
                 pass
 
+        for t in self.transform.transforms:
+            if isinstance(t, RandomPNNTransform):
+                t.new_params()
+
         tensors = tensors[:self.max_len]
         tensors = [self.transform(tensor) for tensor in tensors]
         image = torch.cat(tensors)
 
-        sample = {'image': image, 'label': labels[self.exp_name][plant], 'position': positions[plant], 'plant': plant}
+        sample = {'image': image, 'label': labels[self.exp_name][plant],
+                  'position': positions[self.exp_name].vir_positions[plant], 'plant': plant}
 
         return sample
 
     def _get_np_arr(self, vir_dir, plant_idx):
-        pos = positions[plant_idx]
+        pos = positions[self.exp_name].vir_positions[plant_idx]
 
         left = pos[0] - self.img_len // 2
         right = pos[0] + self.img_len // 2
