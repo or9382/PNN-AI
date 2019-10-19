@@ -44,7 +44,7 @@ class VIR(ModalityDataset):
         image_path = image_path[0]
 
         arr = np.fromfile(image_path, dtype=np.int16).reshape(*self.__get_image_dims(image_path))
-        arr = arr[top:bottom, left:right] / self.__get_exposure(image_path)
+        arr = arr[top:bottom, left:right].astype(np.float) / self.__get_exposure(image_path)
 
         return torch.from_numpy(arr).float().unsqueeze(0)
 
