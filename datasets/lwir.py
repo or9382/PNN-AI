@@ -23,7 +23,7 @@ class LWIR(ModalityDataset):
                          start_date, end_date, skip, max_len, transform)
         self.plant_crop_len = plant_crop_len
 
-    def __get_image(self, directory, plant_position):
+    def _get_image(self, directory, plant_position):
         left = plant_position[0] - self.plant_crop_len // 2
         right = plant_position[0] + self.plant_crop_len // 2
         top = plant_position[1] - self.plant_crop_len // 2

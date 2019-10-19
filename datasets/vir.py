@@ -31,7 +31,7 @@ class VIR(ModalityDataset):
                          start_date, end_date, 1, max_len, transform)
         self.vir_type = vir_type
 
-    def __get_image(self, directory, plant_position):
+    def _get_image(self, directory, plant_position):
         left = plant_position[0] - self.img_len // 2
         right = plant_position[0] + self.img_len // 2
         top = plant_position[1] - self.img_len // 2

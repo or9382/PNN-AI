@@ -83,7 +83,7 @@ class ModalityDataset(data.Dataset):
             # get the image only every split_cycle days
             if curr_date_idx % self.split_cycle == cycle_day:
                 try:
-                    image = self.__get_image(directory, self.positions[plant])
+                    image = self._get_image(directory, self.positions[plant])
                     tensors.append(image)
                 except DirEmptyError:
                     pass
@@ -103,5 +103,5 @@ class ModalityDataset(data.Dataset):
         return sample
 
     @abstractmethod
-    def __get_image(self, directory, plant_position):
+    def _get_image(self, directory, plant_position):
         pass
