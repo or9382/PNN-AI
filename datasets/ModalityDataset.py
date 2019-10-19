@@ -47,7 +47,7 @@ class ModalityDataset(data.Dataset):
         self.max_len = max_len
 
         if transform is None:
-            self.transform = transforms.ToTensor()
+            self.transform = transforms.Compose([])
         else:
             self.transform = transform
 

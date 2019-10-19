@@ -6,7 +6,6 @@ from torchvision.transforms import ToTensor
 from .exceptions import *
 from .experiments import plant_positions
 from .ModalityDataset import ModalityDataset
-from .transformations import GreyscaleToRGB
 
 
 class LWIR(ModalityDataset):
@@ -40,6 +39,6 @@ class LWIR(ModalityDataset):
         image = image.crop((left, top, right, bottom))
         image = image.resize((self.img_len, self.img_len))
 
-        to_rgb = GreyscaleToRGB()
+        to_tensor = ToTensor()
 
-        return to_rgb(image)
+        return to_tensor(image).float()
