@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import NamedTuple, Dict, Tuple, List
+from typing import NamedTuple, Dict, Tuple, List, Any
 import torchvision.transforms as T
-from .transformations import RandomCrop, RandomHorizontalFlip, RandomVerticalFlip
+from .transformations import RandomCrop, RandomHorizontalFlip, RandomVerticalFlip, GreyscaleToRGB
 
 
 class ExpPositions:
@@ -13,15 +13,16 @@ class ExpPositions:
 class ExpInfo(NamedTuple):
     start_date: datetime
     end_date: datetime
-    modalities: Tuple[str, ...]
+    modalities_norms: Dict[str, Tuple[List[float], List[float]]]
 
 
 def get_experiment_modalities(exp_info: ExpInfo, lwir_skip: int, lwir_max_len: int, vir_max_len: int):
     modalities: Dict[str, Dict] = {
         'lwir': {
             'max_len': lwir_max_len, 'skip': lwir_skip, 'transform': T.Compose(
-                [RandomCrop((229, 229)), RandomHorizontalFlip(),
-                 RandomVerticalFlip(), T.ToTensor()])
+                [T.Normalize(*exp_info.modalities_norms['lwir']), T.ToPILImage(),
+                 RandomCrop((229, 229)), RandomHorizontalFlip(),
+                 RandomVerticalFlip(), GreyscaleToRGB(), T.ToTensor()])
         }
     }
 
@@ -29,9 +30,10 @@ def get_experiment_modalities(exp_info: ExpInfo, lwir_skip: int, lwir_max_len: i
         {
             mod: {
                 'max_len': vir_max_len, 'transform': T.Compose(
-                    [RandomCrop((458, 458)), RandomHorizontalFlip(),
-                     RandomVerticalFlip(), T.ToTensor()])
-            } for mod in exp_info.modalities if mod != 'lwir'
+                    [T.Normalize(*norms), T.ToPILImage(),
+                     RandomCrop((458, 458)), RandomHorizontalFlip(),
+                     RandomVerticalFlip(), GreyscaleToRGB(), T.ToTensor()])
+            } for mod, norms in exp_info.modalities_norms.items() if mod != 'lwir'
         }
     )
 
@@ -42,7 +44,14 @@ experiments_info: Dict[str, ExpInfo] = {
     'Exp0': ExpInfo(
         datetime(2019, 6, 5),
         datetime(2019, 6, 19),
-        ("577nm", "692nm", "732nm", "970nm", "lwir", "polar")
+        {
+            'lwir': ([21361.], [481.]),
+            '577nm': ([.00607], [.00773]),
+            '692nm': ([.02629], [.04364]),
+            '732nm': ([.01072], [.11680]),
+            '970nm': ([.00125], [.00095]),
+            'polar': ([.05136], [.22331]),
+        }
     ),
 }
 
