@@ -54,8 +54,8 @@ class VIR(ModalityDataset):
 
     @staticmethod
     def __get_image_dims(file_name: str):
-        fields = file_name.split('_')
-        return int(fields[7]), int(fields[8])
+        fields = file_name.split('/')[-1].split('_')
+        return int(fields[8]), int(fields[7])
 
 
 class VIR577nm(VIR):
