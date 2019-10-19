@@ -130,7 +130,6 @@ class RandomVerticalFlip(RandomPNNTransform):
 
 class GreyscaleToRGB:
     def __call__(self, img: torch.Tensor):
-        img = img.unsqueeze(-3)
         dims = [-1] * len(img.shape)
         dims[-3] = 3
         return img.expand(*dims)
