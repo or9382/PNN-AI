@@ -126,3 +126,8 @@ class RandomVerticalFlip(RandomPNNTransform):
             return TF.vflip(img)
 
         return img
+
+
+class GreyscaleToRGB:
+    def __call__(self, img: Image.Image):
+        return img.convert('RGB')
