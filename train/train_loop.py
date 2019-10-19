@@ -243,6 +243,31 @@ def restore_checkpoint(test_config: TestConfig):
     test_config.plant_cls = test_config.plant_cls.to(test_config.device)
 
 
+def get_levels_kernel(history_len: int):
+    if history_len <= 8:
+        # effective history: 8
+        kernel_size = 2
+        num_levels = 3
+    elif 8 <= history_len <= 32:
+        # effective history: 32
+        kernel_size = 5
+        num_levels = 3
+    elif 32 <= history_len <= 128:
+        # effective history: 128
+        kernel_size = 5
+        num_levels = 5
+    elif 128 <= history_len <= 256:
+        # effective history: 256
+        kernel_size = 5
+        num_levels = 6
+    else:
+        # effective history: 512
+        kernel_size = 9
+        num_levels = 6
+
+    return num_levels, kernel_size
+
+
 def main(args: argparse.Namespace):
     checkpoint_name = get_checkpoint_name(args.experiment, args.excluded_modalities)
 
@@ -275,7 +300,15 @@ def main(args: argparse.Namespace):
     train_set, test_set = ModalitiesSubset.random_split(dataset, [train_amount, test_amount])
     train_loader = data.DataLoader(train_set, batch_size=batch_size, num_workers=2, shuffle=True)
 
-    feat_ext = FeatureExtractor(*used_modalities).to(device)
+    feat_extractor_params = dict()
+    for mod in used_modalities.keys():
+        num_levels, kernel_size = get_levels_kernel(dataset.modalities[mod].max_len)
+        feat_extractor_params[mod] = {
+            'num_levels': num_levels,
+            'kernel_size': kernel_size
+        }
+
+    feat_ext = FeatureExtractor(*feat_extractor_params).to(device)
     label_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, len(classes))).to(device)
     plant_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, dataset.num_plants)).to(device)
 
@@ -321,7 +354,7 @@ if __name__ == '__main__':
                         help='The learning rate for the plant classifier used in the transfer learning.')
     parser.add_argument('--extractor_lr', dest='extractor_lr', type=float, default=1e-2,
                         help='The learning rate for the feature extractor.')
-    parser.add_argument('-t', '--train_ratio', dest='train_ratio', type=float, default=5/6,
+    parser.add_argument('-t', '--train_ratio', dest='train_ratio', type=float, default=5 / 6,
                         help='The ratio of the dataset that will be used for training.')
     parser.add_argument('-b', '--batch_size', dest='batch_size', type=int, default=4,
                         help='The batch size for the training.')
