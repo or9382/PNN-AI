@@ -244,25 +244,26 @@ def restore_checkpoint(test_config: TestConfig):
 
 
 def get_levels_kernel(history_len: int):
-    if history_len <= 8:
-        # effective history: 8
+    # Effective history formula: 1 + 2*(kernel_size-1)*(2^num_levels-1)
+    if history_len <= 15:
+        # effective history: 15
         kernel_size = 2
         num_levels = 3
-    elif 8 <= history_len <= 32:
-        # effective history: 32
+    elif 15 <= history_len <= 57:
+        # effective history: 57
         kernel_size = 5
         num_levels = 3
-    elif 32 <= history_len <= 128:
-        # effective history: 128
+    elif 57 <= history_len <= 121:
+        # effective history: 121
+        kernel_size = 5
+        num_levels = 4
+    elif 121 <= history_len <= 249:
+        # effective history: 249
         kernel_size = 5
         num_levels = 5
-    elif 128 <= history_len <= 256:
-        # effective history: 256
-        kernel_size = 5
-        num_levels = 6
     else:
-        # effective history: 512
-        kernel_size = 9
+        # effective history: 505
+        kernel_size = 5
         num_levels = 6
 
     return num_levels, kernel_size
