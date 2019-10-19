@@ -2,175 +2,82 @@ from datetime import datetime
 import glob
 import numpy as np
 import torch
-from torch.utils import data
-from torchvision import transforms
 
-from .labels import labels
 from .exceptions import *
-from .experiments import plant_positions as positions
-from .transformations import RandomPNNTransform
+from .experiments import plant_positions
+from .ModalityDataset import ModalityDataset
 
 
 # img_size = (5472, 3648)
 
 
-class VIR(data.Dataset):
+class VIR(ModalityDataset):
     """
     An abstract class. The parent class of all VIRs classes.
     """
 
-    def __init__(self, root_dir: str, exp_name: str, img_len: int, split_cycle=7,
+    def __init__(self, root_dir: str, exp_name: str, vir_type: str, img_len: int = 510, split_cycle=7,
                  start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
                  max_len=None, transform=None):
         """
         :param root_dir: path to the experiment directory
         :param exp_name: the experiment we want to use
+        :param vir_type: the name of the used vir filter
         :param img_len: the length of the images in the dataset
         :param split_cycle: amount of days the data will be split by
         :param transform: optional transform to be applied on each frame
         """
-        if max_len is None:
-            max_len = 10000
+        super().__init__(root_dir, exp_name, 'VIR_day', img_len, plant_positions[exp_name].vir_positions, split_cycle,
+                         start_date, end_date, 1, max_len, transform)
+        self.vir_type = vir_type
 
-        self.root_dir = root_dir
-        self.vir_dirs = sorted(glob.glob(root_dir + '/*VIR_day'))
-        self.vir_dirs = self._filter_dirs(self.vir_dirs, start_date, end_date)
+    def __get_image(self, directory, plant_position):
+        left = plant_position[0] - self.img_len // 2
+        right = plant_position[0] + self.img_len // 2
+        top = plant_position[1] - self.img_len // 2
+        bottom = plant_position[1] + self.img_len // 2
 
-        self.exp_name = exp_name
-        self.num_plants = len(positions[exp_name].vir_positions)
-
-        self.img_len = img_len
-        self.split_cycle = split_cycle
-        self.max_len = max_len
-
-        if transform is None:
-            self.transform = transforms.Compose([])
-        else:
-            self.transform = transform
-
-        # the type of the VIR images
-        # to be assigned by inheriting classes
-        self.vir_type = None
-
-    def _filter_dirs(self, dirs, start_date, end_date):
-        format = f"{self.root_dir}/%Y_%m_%d_%H_%M_%S_VIR_day"
-
-        filtered = []
-        for dir in dirs:
-            date = datetime.strptime(dir, format)
-
-            if start_date <= date <= end_date:
-                filtered.append(dir)
-
-        return filtered
-
-    def __len__(self):
-        return self.num_plants * self.split_cycle
-
-    def __getitem__(self, idx):
-        if idx >= len(self):
-            raise IndexError()
-
-        # the day in the cycle this sample belongs to
-        cycle_day = idx // self.num_plants
-        plant = idx % self.num_plants
-
-        tensors = []
-        cur_day = self._get_day(self.vir_dirs[0])
-
-        for vir_dir in self.vir_dirs:
-            # update the current day when it changes
-            if cur_day != self._get_day(vir_dir):
-                cur_day = self._get_day(vir_dir)
-                cycle_day -= 1
-
-            # get the image only every split_cycle days
-            if not cycle_day % self.split_cycle == 0:
-                continue
-
-            try:
-                arr = self._get_np_arr(vir_dir, plant)
-                tensor = torch.from_numpy(arr).float()
-                tensor.unsqueeze_(0)
-                tensors.append(tensor)
-            except DirEmptyError:
-                pass
-
-        for t in self.transform.transforms:
-            if isinstance(t, RandomPNNTransform):
-                t.new_params()
-
-        tensors = tensors[:self.max_len]
-        tensors = [self.transform(tensor) for tensor in tensors]
-        image = torch.cat(tensors)
-
-        sample = {'image': image, 'label': labels[self.exp_name][plant],
-                  'position': positions[self.exp_name].vir_positions[plant], 'plant': plant}
-
-        return sample
-
-    def _get_np_arr(self, vir_dir, plant_idx):
-        pos = positions[self.exp_name].vir_positions[plant_idx]
-
-        left = pos[0] - self.img_len // 2
-        right = pos[0] + self.img_len // 2
-        top = pos[1] - self.img_len // 2
-        bottom = pos[1] + self.img_len // 2
-
-        image_path = glob.glob(f"{vir_dir}/*{self.vir_type}*.raw")
+        image_path = glob.glob(f"{directory}/*{self.vir_type}*.raw")
         if len(image_path) == 0:
             raise DirEmptyError()
 
         image_path = image_path[0]
-        exposure = self._get_exposure(image_path)
 
-        arr = np.fromfile(image_path, dtype=np.int16).reshape(3648, 5472)
-        arr = arr[top:bottom, left:right] / exposure
+        arr = np.fromfile(image_path, dtype=np.int16).reshape(*self.__get_image_dims(image_path))
+        arr = arr[top:bottom, left:right] / self.__get_exposure(image_path)
 
-        return arr
-
-    # returns the date (day) of the directory
-    def _get_day(self, vir_dir):
-        vir_dir = vir_dir[len(self.root_dir) + 1:]
-        return vir_dir.split('_')[2]
+        return torch.from_numpy(arr).float().unsqueeze(0)
 
     @staticmethod
-    def _get_exposure(file_name):
+    def __get_exposure(file_name: str):
         return float(file_name.split('ET')[-1].split('.')[0])
 
+    @staticmethod
+    def __get_image_dims(file_name: str):
+        fields = file_name.split('_')
+        return int(fields[7]), int(fields[8])
 
-# TODO: remove the img_len=458 default param and return to (self, *args, **kwargs), this value should be somewhere else
 
 class VIR577nm(VIR):
-    def __init__(self, img_len=458, *args, **kwargs):
-        super().__init__(img_len=img_len, *args, **kwargs)
-
-        self.vir_type = "577nm"
+    def __init__(self, *args, **kwargs):
+        super().__init__(vir_type="577nm", *args, **kwargs)
 
 
 class VIR692nm(VIR):
-    def __init__(self, img_len=458, *args, **kwargs):
-        super().__init__(img_len=img_len, *args, **kwargs)
-
-        self.vir_type = "692nm"
+    def __init__(self, *args, **kwargs):
+        super().__init__(vir_type="692nm", *args, **kwargs)
 
 
 class VIR732nm(VIR):
-    def __init__(self, img_len=458, *args, **kwargs):
-        super().__init__(img_len=img_len, *args, **kwargs)
-
-        self.vir_type = "732nm"
+    def __init__(self, *args, **kwargs):
+        super().__init__(vir_type="732nm", *args, **kwargs)
 
 
 class VIR970nm(VIR):
-    def __init__(self, img_len=458, *args, **kwargs):
-        super().__init__(img_len=img_len, *args, **kwargs)
-
-        self.vir_type = "970nm"
+    def __init__(self, *args, **kwargs):
+        super().__init__(vir_type="970nm", *args, **kwargs)
 
 
 class VIRPolar(VIR):
-    def __init__(self, img_len=458, *args, **kwargs):
-        super().__init__(img_len=img_len, *args, **kwargs)
-
-        self.vir_type = "Polarizer"
+    def __init__(self, *args, **kwargs):
+        super().__init__(vir_type="Polarizer", *args, **kwargs)
