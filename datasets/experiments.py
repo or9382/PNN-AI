@@ -21,7 +21,7 @@ def get_experiment_modalities(exp_info: ExpInfo, lwir_skip: int, lwir_max_len: i
         'lwir': {
             'max_len': lwir_max_len, 'skip': lwir_skip, 'transform': T.Compose(
                 [T.Normalize(*exp_info.modalities_norms['lwir']), T.ToPILImage(),
-                 RandomCrop((206, 206)), RandomHorizontalFlip(),
+                 RandomCrop((229, 229)), RandomHorizontalFlip(),
                  RandomVerticalFlip(), T.ToTensor()])
         }
     }
@@ -31,7 +31,7 @@ def get_experiment_modalities(exp_info: ExpInfo, lwir_skip: int, lwir_max_len: i
             mod: {
                 'max_len': vir_max_len, 'transform': T.Compose(
                     [T.Normalize(*norms), T.ToPILImage(),
-                     RandomCrop((412, 412)), RandomHorizontalFlip(),
+                     RandomCrop((458, 458)), RandomHorizontalFlip(),
                      RandomVerticalFlip(), T.ToTensor()])
             } for mod, norms in exp_info.modalities_norms.items() if mod != 'lwir'
         }
