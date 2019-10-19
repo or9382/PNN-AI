@@ -8,7 +8,7 @@ from datasets import Modalities, ModalitiesSubset, classes
 from datasets.transformations import *
 from datasets.experiments import get_experiment_modalities, experiments_info
 from model import PlantFeatureExtractor as FeatureExtractor
-from .utils import get_checkpoint_name, get_used_modalities, add_experiment_dataset_arguments
+from .utils import get_checkpoint_name, get_used_modalities, add_experiment_dataset_arguments, get_levels_kernel
 
 
 # define test config
@@ -243,30 +243,7 @@ def restore_checkpoint(test_config: TestConfig):
     test_config.plant_cls = test_config.plant_cls.to(test_config.device)
 
 
-def get_levels_kernel(history_len: int):
-    # Effective history formula: 1 + 2*(kernel_size-1)*(2^num_levels-1)
-    if history_len <= 15:
-        # effective history: 15
-        kernel_size = 2
-        num_levels = 3
-    elif 15 <= history_len <= 57:
-        # effective history: 57
-        kernel_size = 5
-        num_levels = 3
-    elif 57 <= history_len <= 121:
-        # effective history: 121
-        kernel_size = 5
-        num_levels = 4
-    elif 121 <= history_len <= 249:
-        # effective history: 249
-        kernel_size = 5
-        num_levels = 5
-    else:
-        # effective history: 505
-        kernel_size = 5
-        num_levels = 6
 
-    return num_levels, kernel_size
 
 
 def main(args: argparse.Namespace):

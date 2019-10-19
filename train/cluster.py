@@ -20,11 +20,10 @@ from .utils import *
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
-def load_extractor(experiment_name: str, modalities, excluded_modalities: List[str] = []):
+def load_extractor(experiment_name: str, feat_extractor_params, excluded_modalities: List[str] = []):
     checkpoint_name = get_checkpoint_name(experiment_name, excluded_modalities)
 
-    used_modalities = get_used_modalities(modalities, excluded_modalities)
-    feat_extractor = FeatureExtractor(*used_modalities).to(device)
+    feat_extractor = FeatureExtractor(**feat_extractor_params).to(device)
 
     checkpoint = torch.load(f'checkpoints/{checkpoint_name}')
     feat_extractor.load_state_dict(checkpoint['feat_ext_state_dict'])
@@ -38,7 +37,15 @@ def extract_features(modalities, split_cycle: int, start_date, end_date, experim
     dataset = Modalities(experiment_root_dir, experiment_name, split_cycle=split_cycle, start_date=start_date,
                          end_date=end_date, **used_modalities)
 
-    feat_extractor = load_extractor(experiment_name, modalities, excluded_modalities).eval()
+    feat_extractor_params = dict()
+    for mod in used_modalities.keys():
+        num_levels, kernel_size = get_levels_kernel(dataset.modalities[mod].max_len)
+        feat_extractor_params[mod] = {
+            'num_levels': num_levels,
+            'kernel_size': kernel_size
+        }
+
+    feat_extractor = load_extractor(experiment_name, feat_extractor_params, excluded_modalities).eval()
     dataloader = data.DataLoader(dataset, batch_size=4, num_workers=4)
 
     df = pd.DataFrame()
