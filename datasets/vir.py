@@ -2,10 +2,12 @@ from datetime import datetime
 import glob
 import numpy as np
 import torch
+from torchvision.transforms import Compose, ToTensor, ToPILImage
 
 from .exceptions import *
 from .experiments import plant_positions
 from .ModalityDataset import ModalityDataset
+from .transformations import GreyscaleToRGB
 
 
 # img_size = (5472, 3648)
@@ -46,7 +48,7 @@ class VIR(ModalityDataset):
         arr = np.fromfile(image_path, dtype=np.int16).reshape(*self.__get_image_dims(image_path))
         arr = arr[top:bottom, left:right].astype(np.float) / self.__get_exposure(image_path)
 
-        return torch.from_numpy(arr).float().unsqueeze(0)
+        return self.__to_pil_image(arr)
 
     @staticmethod
     def __get_exposure(file_name: str):
@@ -56,6 +58,12 @@ class VIR(ModalityDataset):
     def __get_image_dims(file_name: str):
         fields = file_name.split('/')[-1].split('_')
         return int(fields[8]), int(fields[7])
+
+    @staticmethod
+    def __to_pil_image(arr):
+        transform = Compose([ToPILImage(), GreyscaleToRGB()])
+        return transform(torch.from_numpy(arr))
+
 
 
 class VIR577nm(VIR):

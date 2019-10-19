@@ -47,7 +47,7 @@ class ModalityDataset(data.Dataset):
         self.max_len = max_len
 
         if transform is None:
-            self.transform = transforms.Compose([])
+            self.transform = transforms.ToTensor()
         else:
             self.transform = transform
 
@@ -95,7 +95,7 @@ class ModalityDataset(data.Dataset):
             if isinstance(t, RandomPNNTransform):
                 t.new_params()
 
-        image = torch.cat([self.transform(tensor) for tensor in tensors])
+        image = torch.stack([self.transform(tensor) for tensor in tensors])
 
         sample = {'image': image, 'label': labels[self.exp_name][plant],
                   'position': self.positions[plant], 'plant': plant}
