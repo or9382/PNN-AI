@@ -136,37 +136,6 @@ def test_model(test_config: TestConfig):
     return accuracy, loss
 
 
-def calculate_domain_transfer_mse(test_config: TestConfig):
-    print("Calculating domain transfer residual error:")
-    test_loader = data.DataLoader(test_config.dataset, batch_size=test_config.batch_size, num_workers=2, shuffle=True)
-
-    test_config.feat_ext.eval()
-    test_config.label_cls.eval()
-    test_config.plant_cls.eval()
-
-    tot_error = 0.
-    with torch.no_grad():
-        for batch in test_loader:
-
-            for key in batch:
-                batch[key] = batch[key].to(test_config.device)
-
-            plant_labels = batch['plant']
-
-            x = batch.copy()
-
-            del x['label']
-            del x['plant']
-
-            features: torch.Tensor = test_config.feat_ext(**x)
-            plant_pred = test_config.plant_cls(features)
-            plant_labels_one_hot = F.one_hot(plant_labels, num_classes=test_config.dataset.num_plants).float()
-
-            tot_error += F.mse_loss(plant_pred, plant_labels_one_hot, reduction='sum').item()
-
-    print(f"\tAverage error - {tot_error / len(test_config.dataset)}")
-
-
 def train_loop(test_config: TestConfig):
     for epoch in range(test_config.epochs):
         print(f"epoch {epoch + 1}:")
@@ -282,7 +251,7 @@ def main(args: argparse.Namespace):
         }
 
     feat_ext = FeatureExtractor(**feat_extractor_params).to(device)
-    label_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, len(classes))).to(device)
+    label_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, train_set.plants)).to(device)
     plant_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, dataset.num_plants)).to(device)
 
     criterion = nn.CrossEntropyLoss(reduction='sum').to(device)
@@ -304,8 +273,6 @@ def main(args: argparse.Namespace):
 
     if args.use_checkpoints:
         restore_checkpoint(test_config)
-
-    calculate_domain_transfer_mse(test_config)
 
 
 if __name__ == '__main__':

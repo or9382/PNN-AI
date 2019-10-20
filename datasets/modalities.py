@@ -92,6 +92,7 @@ class ModalitiesSubset(data.Dataset):
         cycle = idx // self.num_plants
 
         data = self.data[self.data.num_plants * cycle + plant]
+        data['plant'] = idx % self.num_plants
 
         return data
 
