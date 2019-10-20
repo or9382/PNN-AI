@@ -49,7 +49,11 @@ def get_used_modalities(modalities, excluded_modalities=[]):
 
 def get_levels_kernel(history_len: int):
     # Effective history formula: 1 + 2*(kernel_size-1)*(2^num_levels-1)
-    if history_len <= 15:
+    if history_len <= 7:
+        # effective history: 7
+        kernel_size = 2
+        num_levels = 2
+    elif 7 <= history_len <= 15:
         # effective history: 15
         kernel_size = 2
         num_levels = 3
