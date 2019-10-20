@@ -134,6 +134,7 @@ def test_model(test_config: TestConfig):
             'loss': loss,
             'accuracy': accuracy
         }, f'checkpoints/{test_config.checkpoint_name}')
+        test_config.epochs_without_improvement = 0
     elif test_config.return_epochs > 0:
         test_config.epochs_without_improvement += 1
         if test_config.epochs_without_improvement == test_config.return_epochs:
