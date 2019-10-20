@@ -1,8 +1,10 @@
 
 from datetime import datetime
 from torch.utils import data
-from typing import Dict, List
+from typing import Dict, List, Tuple
 import random
+from sklearn.model_selection import train_test_split
+import numpy as np
 
 from . import LWIR, VIR577nm, VIR692nm, VIR732nm, VIR970nm, VIRPolar
 from .labels import labels
@@ -90,21 +92,17 @@ class ModalitiesSubset(data.Dataset):
         cycle = idx // self.num_plants
 
         data = self.data[self.data.num_plants * cycle + plant]
-        data['plant'] = idx % self.num_plants
 
         return data
 
     @staticmethod
-    def random_split(modalities: Modalities, plants_amounts: List[int]):
-        idx = list(range(modalities.num_plants))
-        random.shuffle(idx)
+    def random_split(modalities: Modalities, train_ratio: float):
+        indices = np.arange(modalities.num_plants)
+        plant_labels = np.asarray(labels[modalities.exp_name])
 
-        subsets = []
-        for amount in plants_amounts:
-            subsets.append(ModalitiesSubset(modalities, idx[:amount]))
-            idx = idx[amount:]
+        train_indices, test_indices = train_test_split(indices, train_size=train_ratio, stratify=plant_labels)
 
-        return subsets
+        return ModalitiesSubset(modalities, train_indices), ModalitiesSubset(modalities, test_indices)
 
     @staticmethod
     def leave_one_out(modalities: Modalities, plant_idx: int):

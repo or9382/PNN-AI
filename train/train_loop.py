@@ -270,10 +270,7 @@ def main(args: argparse.Namespace):
     dataset = Modalities(experiment_path, args.experiment, split_cycle=args.split_cycle,
                          start_date=curr_experiment.start_date, end_date=curr_experiment.end_date, **used_modalities)
 
-    train_amount = int(args.train_ratio * dataset.num_plants)
-    test_amount = dataset.num_plants - train_amount
-
-    train_set, test_set = ModalitiesSubset.random_split(dataset, [train_amount, test_amount])
+    train_set, test_set = ModalitiesSubset.random_split(dataset, args.train_ratio)
     train_loader = data.DataLoader(train_set, batch_size=batch_size, num_workers=2, shuffle=True)
 
     feat_extractor_params = dict()
@@ -284,7 +281,7 @@ def main(args: argparse.Namespace):
             'kernel_size': kernel_size
         }
 
-    feat_ext = FeatureExtractor(*feat_extractor_params).to(device)
+    feat_ext = FeatureExtractor(**feat_extractor_params).to(device)
     label_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, len(classes))).to(device)
     plant_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, dataset.num_plants)).to(device)
 
