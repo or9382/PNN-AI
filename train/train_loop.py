@@ -251,8 +251,8 @@ def main(args: argparse.Namespace):
         }
 
     feat_ext = FeatureExtractor(**feat_extractor_params).to(device)
-    label_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, train_set.plants)).to(device)
-    plant_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, dataset.num_plants)).to(device)
+    label_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, len(classes))).to(device)
+    plant_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, train_set.num_plants)).to(device)
 
     criterion = nn.CrossEntropyLoss(reduction='sum').to(device)
 

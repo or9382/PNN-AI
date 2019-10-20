@@ -103,7 +103,7 @@ class ModalitiesSubset(data.Dataset):
 
         train_indices, test_indices = train_test_split(indices, train_size=train_ratio, stratify=plant_labels)
 
-        return ModalitiesSubset(modalities, train_indices.tolist()), ModalitiesSubset(modalities, test_indices.tolist())
+        return ModalitiesSubset(modalities, train_indices), ModalitiesSubset(modalities, test_indices)
 
     @staticmethod
     def leave_one_out(modalities: Modalities, plant_idx: int):
