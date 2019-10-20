@@ -6,7 +6,7 @@ import argparse
 
 from datasets import Modalities, ModalitiesSubset, classes
 from datasets.transformations import *
-from datasets.experiments import get_experiment_modalities, experiments_info
+from datasets.experiments import get_experiment_modalities_params, experiments_info
 from model import PlantFeatureExtractor as FeatureExtractor
 from .utils import get_checkpoint_name, get_used_modalities, add_experiment_dataset_arguments, get_levels_kernel
 
@@ -15,7 +15,7 @@ from .utils import get_checkpoint_name, get_used_modalities, add_experiment_data
 class TestConfig:
     def __init__(self, use_checkpoints, checkpoint_name, epochs, batch_size, domain_adapt_lr, device, dataset,
                  train_set, test_set, train_loader, feat_ext, label_cls, plant_cls, criterion, label_opt, plant_opt,
-                 ext_opt, best_loss):
+                 ext_opt, best_loss, loss_delta):
         self.use_checkpoints = use_checkpoints
         self.checkpoint_name = checkpoint_name
         self.epochs = epochs
@@ -35,6 +35,7 @@ class TestConfig:
         self.plant_opt = plant_opt
         self.ext_opt = ext_opt
         self.best_loss = best_loss
+        self.loss_delta = loss_delta
 
 
 # trans_lwir = T.Compose([
@@ -120,15 +121,15 @@ def test_model(test_config: TestConfig):
     print(f"\t\tlabel accuracy - {accuracy}")
     print(f"\t\tlabel loss - {loss}")
 
-    if test_config.use_checkpoints and loss < test_config.best_loss:
-        test_config.best_loss = loss
+    if test_config.use_checkpoints and loss < test_config.best_loss + test_config.loss_delta:
+        test_config.best_loss = min(loss, test_config.best_loss)
 
         print(f'\t\tsaving model with new best loss {test_config.best_loss}')
         torch.save({
             'feat_ext_state_dict': test_config.feat_ext.state_dict(),
             'label_cls_state_dict': test_config.label_cls.state_dict(),
             'plant_cls_state_dict': test_config.plant_cls.state_dict(),
-            'loss': test_config.best_loss,
+            'loss': loss,
             'accuracy': accuracy
         }, f'checkpoints/{test_config.checkpoint_name}')
 
@@ -243,9 +244,6 @@ def restore_checkpoint(test_config: TestConfig):
     test_config.plant_cls = test_config.plant_cls.to(test_config.device)
 
 
-
-
-
 def main(args: argparse.Namespace):
     checkpoint_name = get_checkpoint_name(args.experiment, args.excluded_modalities)
 
@@ -261,7 +259,7 @@ def main(args: argparse.Namespace):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     curr_experiment = experiments_info[args.experiment]
-    modalities = get_experiment_modalities(curr_experiment, args.lwir_skip, args.lwir_max_len, args.vir_max_len)
+    modalities = get_experiment_modalities_params(curr_experiment, args.lwir_skip, args.lwir_max_len, args.vir_max_len)
     used_modalities = get_used_modalities(modalities, args.excluded_modalities)
 
     if args.experiment_path is None:
@@ -300,7 +298,7 @@ def main(args: argparse.Namespace):
 
     test_config = TestConfig(args.use_checkpoints, checkpoint_name, epochs, batch_size, domain_adapt_lr, device,
                              dataset, train_set, test_set, train_loader, feat_ext, label_cls, plant_cls, criterion,
-                             label_opt, plant_opt, ext_opt, best_loss)
+                             label_opt, plant_opt, ext_opt, best_loss, args.loss_delta)
 
     if args.load_checkpoint:
         restore_checkpoint(test_config)
@@ -336,6 +334,8 @@ if __name__ == '__main__':
                         help='The ratio of the dataset that will be used for training.')
     parser.add_argument('-b', '--batch_size', dest='batch_size', type=int, default=4,
                         help='The batch size for the training.')
+    parser.add_argument('--loss_delta', dest='loss_delta', type=float, default=0.0,
+                        help='The minimum amount above the best loss that would still have the model saved.')
     add_experiment_dataset_arguments(parser)
 
     arguments = parser.parse_args()

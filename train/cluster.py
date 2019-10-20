@@ -13,7 +13,7 @@ from typing import List
 
 from datasets.labels import classes
 from datasets import Modalities
-from datasets.experiments import experiments_info, get_experiment_modalities
+from datasets.experiments import experiments_info, get_experiment_modalities_params
 from model.feature_extraction import PlantFeatureExtractor as FeatureExtractor
 from .utils import *
 
@@ -194,8 +194,8 @@ if __name__ == '__main__':
     add_experiment_dataset_arguments(clusters_parser)
     clusters_parser.set_defaults(
         func=lambda args: cluster_comp(
-            get_data_features(args, get_experiment_modalities(experiments_info[args.experiment], args.lwir_skip,
-                                                              args.lwir_max_len, args.vir_max_len)),
+            get_data_features(args, get_experiment_modalities_params(experiments_info[args.experiment], args.lwir_skip,
+                                                                     args.lwir_max_len, args.vir_max_len)),
             args.num_clusters
         )
     )
@@ -214,8 +214,8 @@ if __name__ == '__main__':
     add_experiment_dataset_arguments(tsne_parser)
     tsne_parser.set_defaults(
         func=lambda args: plot_tsne(
-            get_data_features(args, get_experiment_modalities(experiments_info[args.experiment], args.lwir_skip,
-                                                              args.lwir_max_len, args.vir_max_len)),
+            get_data_features(args, get_experiment_modalities_params(experiments_info[args.experiment], args.lwir_skip,
+                                                                     args.lwir_max_len, args.vir_max_len)),
             args.experiment,
             args.excluded_modalities,
             args.PCA
