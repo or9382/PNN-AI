@@ -15,7 +15,7 @@ from .utils import get_checkpoint_name, get_used_modalities, add_experiment_data
 class TestConfig:
     def __init__(self, use_checkpoints, checkpoint_name, epochs, batch_size, domain_adapt_lr, device, dataset,
                  train_set, test_set, train_loader, feat_ext, label_cls, plant_cls, criterion, label_opt, plant_opt,
-                 ext_opt, best_loss, loss_delta):
+                 ext_opt, best_loss, loss_delta, return_epochs):
         self.use_checkpoints = use_checkpoints
         self.checkpoint_name = checkpoint_name
         self.epochs = epochs
@@ -36,6 +36,8 @@ class TestConfig:
         self.ext_opt = ext_opt
         self.best_loss = best_loss
         self.loss_delta = loss_delta
+        self.return_epochs = return_epochs
+        self.epochs_without_improvement = 0
 
 
 # trans_lwir = T.Compose([
@@ -132,6 +134,11 @@ def test_model(test_config: TestConfig):
             'loss': loss,
             'accuracy': accuracy
         }, f'checkpoints/{test_config.checkpoint_name}')
+    elif test_config.return_epochs > 0:
+        test_config.epochs_without_improvement += 1
+        if test_config.epochs_without_improvement == test_config.return_epochs:
+            restore_checkpoint(test_config)
+            test_config.epochs_without_improvement = 0
 
     return accuracy, loss
 
@@ -264,7 +271,7 @@ def main(args: argparse.Namespace):
 
     test_config = TestConfig(args.use_checkpoints, checkpoint_name, epochs, batch_size, domain_adapt_lr, device,
                              dataset, train_set, test_set, train_loader, feat_ext, label_cls, plant_cls, criterion,
-                             label_opt, plant_opt, ext_opt, best_loss, args.loss_delta)
+                             label_opt, plant_opt, ext_opt, best_loss, args.loss_delta, args.return_epochs)
 
     if args.load_checkpoint:
         restore_checkpoint(test_config)
@@ -300,6 +307,9 @@ if __name__ == '__main__':
                         help='The batch size for the training.')
     parser.add_argument('--loss_delta', dest='loss_delta', type=float, default=0.0,
                         help='The minimum amount above the best loss that would still have the model saved.')
+    parser.add_argument('--return_epochs', dest='return_epochs', type=int, default=0,
+                        help="""Number of epochs without improvement (includeing loss_delta)
+                        after which we return to the best checkpoint. Value of 0 disables this (default value).""")
     add_experiment_dataset_arguments(parser)
 
     arguments = parser.parse_args()
