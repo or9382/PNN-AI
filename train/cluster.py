@@ -55,7 +55,7 @@ def extract_features(modalities, split_cycle: int, start_date, end_date, experim
             batch[key] = batch[key].to(device)
 
         labels = batch['label'].cpu().numpy()
-        labels = list(map(lambda i: classes[i], labels))
+        labels = list(map(lambda i: classes[experiment_name][i], labels))
         plants = batch['plant'].cpu().numpy()
 
         x = batch.copy()
@@ -183,8 +183,9 @@ if __name__ == '__main__':
     # The subparser for the clustering
     clusters_parser = subparsers.add_parser('compare_clusters',
                                             help='Compare the cluster evaluation results for the chosen modalities.')
-    clusters_parser.add_argument('-c', '--num_clusters', dest='num_clusters', type=int, default=6,
-                                 help='The number of clusters used in the evaluations,')
+    clusters_parser.add_argument('-c', '--num_clusters', dest='num_clusters', type=int, default=0,
+                                 help="""The number of clusters used in the evaluations,
+                                 default is the number of phenotypes for the experiment.""")
     clusters_parser.add_argument('--exclude_modalities', '--exclude', dest='excluded_modalities', nargs='*',
                                  choices=mods, default=[],
                                  help=f"All of the modalities that you don't want to use. Choices are: {mods}")
@@ -196,7 +197,7 @@ if __name__ == '__main__':
         func=lambda args: cluster_comp(
             get_data_features(args, get_experiment_modalities_params(experiments_info[args.experiment], args.lwir_skip,
                                                                      args.lwir_max_len, args.vir_max_len)),
-            args.num_clusters
+            args.num_clusters if args.num_clusters > 0 else len(classes[args.experiment])
         )
     )
 

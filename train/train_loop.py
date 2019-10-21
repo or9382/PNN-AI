@@ -126,7 +126,7 @@ def test_model(test_config: TestConfig):
     if test_config.use_checkpoints and loss < test_config.best_loss + test_config.loss_delta:
         test_config.best_loss = min(loss, test_config.best_loss)
 
-        print(f'\t\tsaving model with new best loss {test_config.best_loss}')
+        print(f'\t\tsaving model with new best loss {loss}')
         torch.save({
             'feat_ext_state_dict': test_config.feat_ext.state_dict(),
             'label_cls_state_dict': test_config.label_cls.state_dict(),
@@ -259,7 +259,7 @@ def main(args: argparse.Namespace):
         }
 
     feat_ext = FeatureExtractor(**feat_extractor_params).to(device)
-    label_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, len(classes))).to(device)
+    label_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, len(classes[args.experiment]))).to(device)
     plant_cls = nn.Sequential(nn.ReLU(), nn.Linear(512, train_set.num_plants)).to(device)
 
     criterion = nn.CrossEntropyLoss(reduction='sum').to(device)
