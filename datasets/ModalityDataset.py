@@ -33,8 +33,9 @@ class ModalityDataset(data.Dataset):
 
         self.root_dir = root_dir
         self.directory_suffix = directory_suffix
-        self.dirs = sorted(glob.glob(f'{root_dir}/*{directory_suffix}'))
-        self.dirs = self.__filter_dirs(self.dirs, start_date, end_date)[::skip]
+        dirs = sorted(glob.glob(f'{root_dir}/*{directory_suffix}'))
+        dirs = self.__filter_dirs(dirs, start_date.date(), end_date.date())
+        self.cycles_dirs = self.__get_cycles_dirs(dirs, split_cycle, skip)
 
         self.exp_name = exp_name
         self.positions = positions
@@ -44,10 +45,13 @@ class ModalityDataset(data.Dataset):
         self.img_len = img_len
         self.split_cycle = split_cycle
 
+        highest_max_len = min(len(cycle_dirs) for cycle_dirs in self.cycles_dirs)
         if max_len is None:
-            self.max_len = len(self.dirs) // split_cycle
+            self.max_len = highest_max_len
         else:
-            self.max_len = min(max_len, len(self.dirs) // split_cycle)
+            self.max_len = min(max_len, highest_max_len)
+
+        self.cycles_dirs = (tuple(cycle_dirs[:self.max_len]) for cycle_dirs in self.cycles_dirs)
 
         if transform is None:
             self.transform = transforms.Compose([])
@@ -56,7 +60,24 @@ class ModalityDataset(data.Dataset):
 
     def __get_dir_date(self, directory):
         dir_format = f"{self.root_dir}/%Y_%m_%d_%H_%M_%S_{self.directory_suffix}"
-        return datetime.strptime(directory, dir_format)
+        return datetime.strptime(directory, dir_format).date()
+
+    def __get_cycles_dirs(self, dirs, split_cycle, skip):
+        curr_date = self.__get_dir_date(dirs[0])
+        days_dirs = [[]]
+
+        for directory in dirs:
+            # update the current day when it changes
+            dir_date = self.__get_dir_date(directory)
+            if curr_date != dir_date:
+                curr_date = dir_date
+                days_dirs.append([])
+
+            # get the image only every split_cycle days
+            days_dirs[-1].append(directory)
+
+        cycles_dirs = [sum(days_dirs[idx::split_cycle], []) for idx in range(split_cycle)]
+        return [cycle_dirs[::skip] for cycle_dirs in cycles_dirs]
 
     def __filter_dirs(self, dirs, start_date, end_date):
         return [d for d in dirs if start_date <= self.__get_dir_date(d) <= end_date and self._dir_has_file(d)]
@@ -73,26 +94,13 @@ class ModalityDataset(data.Dataset):
         plant = idx % self.num_plants
 
         tensors = []
-        curr_date = self.__get_dir_date(self.dirs[0]).date()
-        curr_date_idx = 0
 
-        for directory in self.dirs:
-            # update the current day when it changes
-            dir_date = self.__get_dir_date(directory).date()
-            if curr_date != dir_date:
-                curr_date = dir_date
-                curr_date_idx += 1
-
-            # get the image only every split_cycle days
-            if curr_date_idx % self.split_cycle == cycle_day:
-                try:
-                    image = self._get_image(directory, self.positions[plant])
-                    tensors.append(image)
-                except DirEmptyError:
-                    pass
-
-                if self.max_len is not None and len(tensors) >= self.max_len:
-                    break
+        for directory in self.cycles_dirs[cycle_day]:
+            try:
+                image = self._get_image(directory, self.positions[plant])
+                tensors.append(image)
+            except DirEmptyError:
+                pass
 
         for t in self.transform.transforms:
             if isinstance(t, RandomPNNTransform):
