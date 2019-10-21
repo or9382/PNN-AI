@@ -12,7 +12,7 @@ class Color(ModalityDataset):
     def __init__(self, root_dir: str, exp_name: str, img_len: int = 255, split_cycle=7,
                  start_date=datetime(2019, 6, 4), end_date=datetime(2019, 7, 7),
                  max_len=None, transform=None):
-        super().__init__(root_dir, exp_name, 'D465_Colo', img_len, plant_positions[exp_name].color_positions,
+        super().__init__(root_dir, exp_name, 'D465_Color', img_len, plant_positions[exp_name].color_positions,
                          split_cycle, start_date, end_date, 1, max_len, transform)
 
     def _get_image(self, directory, plant_position):
