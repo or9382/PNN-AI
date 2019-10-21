@@ -73,8 +73,8 @@ experiments_info: Dict[str, ExpInfo] = {
         }
     ),
     'Exp2': ExpInfo(
-        datetime(2019, 6, 5),
-        datetime(2019, 6, 19),
+        datetime(2019, 9, 19),
+        datetime(2019, 10, 13),
         {
             'lwir': ([21361.], [481.]),
             '577nm': ([.00607], [.00773]),
