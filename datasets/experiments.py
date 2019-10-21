@@ -41,7 +41,7 @@ def get_experiment_modalities_params(exp_info: ExpInfo, lwir_skip: int, lwir_max
 
 
 def get_all_modalities():
-    return tuple(set(sum([list(info.modalities_norms.keys()) for info in experiments_info.values()])))
+    return tuple(set(sum([list(info.modalities_norms.keys()) for info in experiments_info.values()], [])))
 
 
 def get_experiment_modalities(exp_name: str):
