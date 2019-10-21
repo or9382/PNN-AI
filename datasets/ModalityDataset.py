@@ -45,9 +45,9 @@ class ModalityDataset(data.Dataset):
         self.split_cycle = split_cycle
 
         if max_len is None:
-            self.max_len = len(self.dirs) // self.__len__()
+            self.max_len = len(self.dirs) // split_cycle
         else:
-            self.max_len = min(max_len, len(self.dirs) // self.__len__())
+            self.max_len = min(max_len, len(self.dirs) // split_cycle)
 
         if transform is None:
             self.transform = transforms.Compose([])
