@@ -89,3 +89,8 @@ class VIRPolar(VIR):
 class VIRPolarA(VIR):
     def __init__(self, *args, **kwargs):
         super().__init__(vir_type="PolarizerA", *args, **kwargs)
+
+
+class VIRNoFilter(VIR):
+    def __init__(self, *args, **kwargs):
+        super().__init__(vir_type="noFilter", *args, **kwargs)
