@@ -13,7 +13,7 @@ from typing import List
 
 from datasets.labels import classes
 from datasets import Modalities
-from datasets.experiments import experiments_info, get_experiment_modalities_params
+from datasets.experiments import experiments_info, get_experiment_modalities_params, get_all_modalities
 from model.feature_extraction import PlantFeatureExtractor as FeatureExtractor
 from .utils import *
 
@@ -176,7 +176,7 @@ def get_data_features(args: argparse.Namespace, modalities):
 
 
 if __name__ == '__main__':
-    mods = list(experiments_info['Exp0'].modalities_norms.keys())
+    mods = get_all_modalities()
     parser = argparse.ArgumentParser(description='Run the clustering program.')
     subparsers = parser.add_subparsers(title='Subcommands', description='compare_clusters, plot_TSNE')
 

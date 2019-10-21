@@ -6,7 +6,7 @@ import argparse
 
 from datasets import Modalities, ModalitiesSubset, classes
 from datasets.transformations import *
-from datasets.experiments import get_experiment_modalities_params, experiments_info
+from datasets.experiments import get_experiment_modalities_params, experiments_info, get_all_modalities
 from model import PlantFeatureExtractor as FeatureExtractor
 from .utils import get_checkpoint_name, get_used_modalities, add_experiment_dataset_arguments, get_levels_kernel
 
@@ -284,7 +284,7 @@ def main(args: argparse.Namespace):
 
 
 if __name__ == '__main__':
-    mods = list(experiments_info['Exp0'].modalities_norms.keys())
+    mods = get_all_modalities()
     parser = argparse.ArgumentParser(description='Run the train loop.')
     parser.add_argument('-c', '--disable_checkpoints', dest='use_checkpoints', action='store_false', default=True,
                         help='Flag for disabling checkpoints in the training.')
