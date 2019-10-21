@@ -81,3 +81,8 @@ class VIR970nm(VIR):
 class VIRPolar(VIR):
     def __init__(self, *args, **kwargs):
         super().__init__(vir_type="Polarizer", *args, **kwargs)
+
+
+class VIRPolarA(VIR):
+    def __init__(self, *args, **kwargs):
+        super().__init__(vir_type="PolarizerA", *args, **kwargs)

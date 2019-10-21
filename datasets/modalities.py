@@ -1,12 +1,11 @@
 
 from datetime import datetime
 from torch.utils import data
-from typing import Dict, List, Tuple
-import random
+from typing import Dict, List
 from sklearn.model_selection import train_test_split
 import numpy as np
 
-from . import LWIR, VIR577nm, VIR692nm, VIR732nm, VIR970nm, VIRPolar
+from . import LWIR, VIR577nm, VIR692nm, VIR732nm, VIR970nm, VIRPolar, VIRPolarA
 from .labels import labels
 
 
@@ -16,7 +15,8 @@ mod_map = {
     '692nm': VIR692nm,
     '732nm': VIR732nm,
     '970nm': VIR970nm,
-    'polar': VIRPolar
+    'polar': VIRPolar,
+    'polar_a': VIRPolarA
 }
 
 

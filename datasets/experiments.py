@@ -61,6 +61,17 @@ experiments_info: Dict[str, ExpInfo] = {
             'polar': ([.05136], [.22331]),
         }
     ),
+    'Exp1': ExpInfo(
+            datetime(2019, 7, 28),
+            datetime(2019, 8, 4),
+            {
+                'lwir': ([21361.], [481.]),
+                '577nm': ([.00607], [.00773]),
+                '692nm': ([.02629], [.04364]),
+                '732nm': ([.01072], [.11680]),
+                'polar_a': ([0.], [1.]),
+            }
+    )
 }
 
 # plants are indexed left to right, top to bottom
