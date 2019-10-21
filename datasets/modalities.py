@@ -5,7 +5,7 @@ from typing import Dict, List
 from sklearn.model_selection import train_test_split
 import numpy as np
 
-from . import LWIR, VIR577nm, VIR692nm, VIR732nm, VIR970nm, VIRPolar, VIRPolarA, VIRNoFilter
+from . import LWIR, VIR577nm, VIR692nm, VIR732nm, VIR970nm, VIRPolar, VIRPolarA, VIRNoFilter, Color
 from .labels import labels
 
 
@@ -17,7 +17,8 @@ mod_map = {
     '970nm': VIR970nm,
     'polar': VIRPolar,
     'polar_a': VIRPolarA,
-    'noFilter': VIRNoFilter
+    'noFilter': VIRNoFilter,
+    'color': Color
 }
 
 
