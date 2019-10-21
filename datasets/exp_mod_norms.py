@@ -62,8 +62,7 @@ def main(args):
         ds = mod_map[mod](root_dir=experiment_path, exp_name=args.experiment, split_cycle=1,
                           start_date=curr_experiment.start_date, end_date=curr_experiment.end_date)
         mean, std = get_mod_norms(ds)
-        print(f'Modality {mod}:')
-        print(f'mean - {mean}\tstd - {std}')
+        print(f'Modality {mod}:\tmean - {mean}\tstd - {std}')
 
 
 if __name__ == '__main__':
