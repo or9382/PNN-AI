@@ -51,7 +51,7 @@ class ModalityDataset(data.Dataset):
         else:
             self.max_len = min(max_len, highest_max_len)
 
-        self.cycles_dirs = (tuple(cycle_dirs[:self.max_len]) for cycle_dirs in self.cycles_dirs)
+        self.cycles_dirs = tuple(tuple(cycle_dirs[:self.max_len]) for cycle_dirs in self.cycles_dirs)
 
         if transform is None:
             self.transform = transforms.Compose([])
