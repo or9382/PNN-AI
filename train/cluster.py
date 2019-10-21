@@ -196,7 +196,8 @@ if __name__ == '__main__':
     clusters_parser.set_defaults(
         func=lambda args: cluster_comp(
             get_data_features(args, get_experiment_modalities_params(experiments_info[args.experiment], args.lwir_skip,
-                                                                     args.lwir_max_len, args.vir_max_len)),
+                                                                     args.lwir_max_len, args.vir_max_len,
+                                                                     args.color_max_len)),
             args.num_clusters if args.num_clusters > 0 else len(classes[args.experiment])
         )
     )

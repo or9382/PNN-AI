@@ -236,7 +236,8 @@ def main(args: argparse.Namespace):
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     curr_experiment = experiments_info[args.experiment]
-    modalities = get_experiment_modalities_params(curr_experiment, args.lwir_skip, args.lwir_max_len, args.vir_max_len)
+    modalities = get_experiment_modalities_params(curr_experiment, args.lwir_skip, args.lwir_max_len, args.vir_max_len,
+                                                  args.color_max_len)
     used_modalities = get_used_modalities(modalities, args.excluded_modalities)
 
     if args.experiment_path is None:

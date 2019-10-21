@@ -13,6 +13,11 @@ def add_experiment_dataset_arguments(parser: argparse.ArgumentParser):
                                 If not used it is unlimited,
                                 and if used with no number (i.e using --vir_max_len with no value)
                                 it will have a default of 6.""")
+    parser.add_argument('--color_max_len', dest='color_max_len', type=int, nargs='?', const=6, default=None,
+                        help="""The maximum number of images in a single color sample.
+                                    If not used it is unlimited,
+                                    and if used with no number (i.e using --color_max_len with no value)
+                                    it will have a default of 6.""")
     parser.add_argument('--skip', '--lwir_skip', dest='lwir_skip', type=int, nargs='?', const=5, default=1,
                         help="""The maximum number of images in a single vir sample.
                             If not used it is 1, and if used with no number (i.e using --lwir_skip or --skip with no value)
