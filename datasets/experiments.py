@@ -16,7 +16,8 @@ class ExpInfo(NamedTuple):
     modalities_norms: Dict[str, Tuple[List[float], List[float]]]
 
 
-def get_experiment_modalities_params(exp_info: ExpInfo, lwir_skip: int, lwir_max_len: int, vir_max_len: int):
+def get_experiment_modalities_params(exp_info: ExpInfo, lwir_skip: int, lwir_max_len: int, vir_max_len: int,
+                                     color_max_len: int = None):
     modalities: Dict[str, Dict] = {
         'lwir': {
             'max_len': lwir_max_len, 'skip': lwir_skip, 'transform': T.Compose(
@@ -26,6 +27,14 @@ def get_experiment_modalities_params(exp_info: ExpInfo, lwir_skip: int, lwir_max
         }
     }
 
+    if 'color' in exp_info.modalities_norms.keys():
+        modalities['color'] = {
+            'max_len': color_max_len, 'transform': T.Compose(
+                [T.Normalize(*exp_info.modalities_norms['color']), T.ToPILImage(),
+                 RandomCrop((229, 229)), RandomHorizontalFlip(),
+                 RandomVerticalFlip(), T.ToTensor()])
+        }
+
     modalities.update(
         {
             mod: {
@@ -33,7 +42,7 @@ def get_experiment_modalities_params(exp_info: ExpInfo, lwir_skip: int, lwir_max
                     [T.Normalize(*norms), T.ToPILImage(),
                      RandomCrop((458, 458)), RandomHorizontalFlip(),
                      RandomVerticalFlip(), T.ToTensor(), GreyscaleToRGB()])
-            } for mod, norms in exp_info.modalities_norms.items() if mod != 'lwir'
+            } for mod, norms in exp_info.modalities_norms.items() if mod != 'lwir' and mod != 'color'
         }
     )
 
@@ -69,18 +78,19 @@ experiments_info: Dict[str, ExpInfo] = {
             '577nm': ([.0046], [.0043]),
             '692nm': ([.0181], [.0178]),
             '732nm': ([.0172], [.0794]),
-            'polar_a': ([0.306], [.1435]),
+            'polar_a': ([2.0094], [3.3219]),
+            'color': ([0.5, 0.5, 0.5], [0.5, 0.5, 0.5])
         }
     ),
     'Exp2': ExpInfo(
         datetime(2019, 9, 19),
         datetime(2019, 10, 13),
         {
-            'lwir': ([21361.], [481.]),
-            '577nm': ([.00607], [.00773]),
-            '692nm': ([.02629], [.04364]),
-            '732nm': ([.01072], [.11680]),
-            '970nm': ([.00125], [.00095]),
+            'lwir': ([21150.4258], [169.5550]),
+            '577nm': ([0.0341], [0.0541]),
+            '692nm': ([.2081], [.2807]),
+            '732nm': ([.2263], [.6049]),
+            '970nm': ([.0035], [.0038]),
             'noFilter': ([.05136], [.22331]),
         }
     ),
@@ -142,6 +152,14 @@ plant_positions = {
             (586, 2279), (989, 2234), (1465, 2263), (1947, 2247), (2482, 2174), (3239, 2066), (3692, 2031), (4202, 2020), (4665, 1969),
             (626, 2713), (1024, 2690), (1468, 2713), (2014, 2705), (2515, 2697), (3299, 2655), (3838, 2589), (4227, 2559), (4685, 2580),
             (626, 3264), (1075, 3225), (1532, 3243), (1968, 3237), (2519, 3235), (3318, 3200), (3811, 3218), (4244, 3218), (4709, 3256)
+        ),
+        'color_positions': (
+            (1004, 1091), (1195, 1085), (1409, 1065), (1651, 1041), (1892, 1032), (2255, 1020), (2521, 1005), (2758, 1006), (3039, 1000),
+            (966, 1390), (1221, 1373), (1435, 1363), (1663, 1334), (1887, 1358), (2268, 1319), (2520, 1311), (2788, 1310), (3025, 1270),
+            (956, 1633), (1189, 1624), (1418, 1644), (1627, 1645), (1904, 1619), (2265, 1592), (2555, 1569), (2808, 1551), (3042, 1538),
+            (939, 1943), (1158, 1910), (1395, 1915), (1666, 1920), (1933, 1892), (2308, 1843), (2545, 1825), (2807, 1824), (3053, 1796),
+            (957, 2153), (1156, 2148), (1397, 2154), (1676, 2147), (1934, 2148), (2343, 2147), (2635, 2124), (2841, 2110), (3064, 2115),
+            (967, 2364), (1183, 2404), (1421, 2428), (1653, 2431), (1930, 2428), (2358, 2416), (2591, 2434), (2815, 2425), (3071, 2504)
         )
     })
 }
