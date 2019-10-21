@@ -27,9 +27,9 @@ class VIR(ModalityDataset):
         :param split_cycle: amount of days the data will be split by
         :param transform: optional transform to be applied on each frame
         """
+        self.vir_type = vir_type
         super().__init__(root_dir, exp_name, 'VIR_day', img_len, plant_positions[exp_name].vir_positions, split_cycle,
                          start_date, end_date, 1, max_len, transform)
-        self.vir_type = vir_type
 
     def _get_image(self, directory, plant_position):
         left = plant_position[0] - self.img_len // 2
