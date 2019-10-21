@@ -59,7 +59,7 @@ def main(args):
         experiment_path = args.experiment_path
 
     for mod in used_mods:
-        ds = mod_map[mod](root_dir=experiment_path, exp_name=args.experiment,
+        ds = mod_map[mod](root_dir=experiment_path, exp_name=args.experiment, split_cycle=1,
                           start_date=curr_experiment.start_date, end_date=curr_experiment.end_date)
         mean, std = get_mod_norms(ds)
         print(f'Modality {mod}:')
