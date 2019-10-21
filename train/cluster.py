@@ -118,7 +118,7 @@ def plot_tsne(df: pd.DataFrame, experiment_name: str, excluded_modalities=[], pc
     ax = sns.scatterplot(
         x="tsne-one", y="tsne-two",
         hue="label",
-        palette=sns.color_palette("hls", 6),
+        palette=sns.color_palette("hls", labels.nunique()),
         data=df,
         legend="full",
         alpha=0.3,
