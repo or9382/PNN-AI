@@ -57,6 +57,12 @@ class VIR(ModalityDataset):
         fields = file_name.split('/')[-1].split('_')
         return int(fields[8]), int(fields[7])
 
+    def _dir_has_file(self, directory) -> bool:
+        if glob.glob(f"{directory}/*{self.vir_type}*.raw"):
+            return True
+        else:
+            return False
+
 
 class VIR577nm(VIR):
     def __init__(self, *args, **kwargs):

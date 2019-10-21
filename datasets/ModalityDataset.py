@@ -33,8 +33,8 @@ class ModalityDataset(data.Dataset):
 
         self.root_dir = root_dir
         self.directory_suffix = directory_suffix
-        self.dirs = sorted(glob.glob(f'{root_dir}/*{directory_suffix}'))[::skip]
-        self.dirs = self.__filter_dirs(self.dirs, start_date, end_date)
+        self.dirs = sorted(glob.glob(f'{root_dir}/*{directory_suffix}'))
+        self.dirs = self.__filter_dirs(self.dirs, start_date, end_date)[::skip]
 
         self.exp_name = exp_name
         self.positions = positions
@@ -59,7 +59,7 @@ class ModalityDataset(data.Dataset):
         return datetime.strptime(directory, dir_format)
 
     def __filter_dirs(self, dirs, start_date, end_date):
-        return [d for d in dirs if start_date <= self.__get_dir_date(d) <= end_date]
+        return [d for d in dirs if start_date <= self.__get_dir_date(d) <= end_date and self._dir_has_file(d)]
 
     def __len__(self):
         return self.num_plants * self.split_cycle
@@ -107,4 +107,8 @@ class ModalityDataset(data.Dataset):
 
     @abstractmethod
     def _get_image(self, directory, plant_position):
+        pass
+
+    @abstractmethod
+    def _dir_has_file(self, directory) -> bool:
         pass

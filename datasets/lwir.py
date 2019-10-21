@@ -42,3 +42,9 @@ class LWIR(ModalityDataset):
         to_tensor = ToTensor()
 
         return to_tensor(image).float()
+
+    def _dir_has_file(self, directory) -> bool:
+        if glob.glob(directory + '/*.tiff'):
+            return True
+        else:
+            return False
