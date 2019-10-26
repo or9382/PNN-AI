@@ -174,7 +174,7 @@ def get_data_features(args: argparse.Namespace, modalities):
 
         end_date = curr_experiment.end_date
         if args.num_days is not None:
-            end_date = curr_experiment.start_date + timedelta(days=args.num_days)
+            end_date = curr_experiment.start_date + timedelta(days=args.num_days-1)
 
         root_dir = args.experiment if args.experiment_path is None else args.experiment_path
         return extract_features(modalities, args.split_cycle, curr_experiment.start_date, end_date, args.experiment,

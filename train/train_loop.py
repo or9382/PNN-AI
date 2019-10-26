@@ -248,7 +248,7 @@ def main(args: argparse.Namespace):
 
     end_date = curr_experiment.end_date
     if args.num_days is not None:
-        end_date = curr_experiment.start_date + timedelta(days=args.num_days)
+        end_date = curr_experiment.start_date + timedelta(days=args.num_days-1)
 
     dataset = Modalities(experiment_path, args.experiment, split_cycle=args.split_cycle,
                          start_date=curr_experiment.start_date, end_date=end_date, **used_modalities)
