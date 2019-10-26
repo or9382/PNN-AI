@@ -100,6 +100,8 @@ def test_model(test_config: TestConfig):
     tot_label_loss = 0.
     with torch.no_grad():
         for batch in test_loader:
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
             labels = batch['label']
 
             x = batch.copy()
