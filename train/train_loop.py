@@ -102,7 +102,7 @@ def test_model(test_config: TestConfig):
         for batch in test_loader:
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
-            labels = batch['label']
+            labels = batch['label'].to(test_config.device)
 
             x = batch.copy()
 
@@ -158,8 +158,8 @@ def train_loop(test_config: TestConfig):
         tot_plant_loss = 0.
         tot_accuracy = 0.
         for i, batch in enumerate(test_config.train_loader, 1):
-            labels = batch['label']
-            plants = batch['plant']
+            labels = batch['label'].to(test_config.device)
+            plants = batch['plant'].to(test_config.device)
 
             x = batch.copy()
 
