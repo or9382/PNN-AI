@@ -3,6 +3,7 @@ from torch import nn, optim
 from torch.utils import data
 import torch.nn.functional as F
 import argparse
+from datetime import timedelta
 
 from datasets import Modalities, ModalitiesSubset, classes
 from datasets.transformations import *
@@ -245,8 +246,12 @@ def main(args: argparse.Namespace):
     else:
         experiment_path = args.experiment_path
 
+    end_date = curr_experiment.end_date
+    if args.num_days is not None:
+        end_date = curr_experiment.start_date + timedelta(days=args.num_days)
+
     dataset = Modalities(experiment_path, args.experiment, split_cycle=args.split_cycle,
-                         start_date=curr_experiment.start_date, end_date=curr_experiment.end_date, **used_modalities)
+                         start_date=curr_experiment.start_date, end_date=end_date, **used_modalities)
 
     train_set, test_set = ModalitiesSubset.random_split(dataset, args.train_ratio)
     train_loader = data.DataLoader(train_set, batch_size=batch_size, num_workers=2, shuffle=True)

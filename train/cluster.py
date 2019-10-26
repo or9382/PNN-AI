@@ -9,6 +9,7 @@ from sklearn.manifold import TSNE
 from sklearn import mixture
 from sklearn import metrics
 import argparse
+from datetime import timedelta
 from typing import List
 
 from datasets.labels import classes
@@ -170,9 +171,14 @@ def get_data_features(args: argparse.Namespace, modalities):
         return pd.read_csv(f"saved_features/{get_feature_file_name(args.experiment, args.excluded_modalities)}")
     else:
         curr_experiment = experiments_info[args.experiment]
+
+        end_date = curr_experiment.end_date
+        if args.num_days is not None:
+            end_date = curr_experiment.start_date + timedelta(days=args.num_days)
+
         root_dir = args.experiment if args.experiment_path is None else args.experiment_path
-        return extract_features(modalities, args.split_cycle, curr_experiment.start_date, curr_experiment.end_date,
-                                args.experiment, root_dir, args.excluded_modalities)
+        return extract_features(modalities, args.split_cycle, curr_experiment.start_date, end_date, args.experiment,
+                                root_dir, args.excluded_modalities)
 
 
 if __name__ == '__main__':

@@ -22,6 +22,8 @@ def add_experiment_dataset_arguments(parser: argparse.ArgumentParser):
                         help="""The maximum number of images in a single vir sample.
                             If not used it is 1, and if used with no number (i.e using --lwir_skip or --skip with no value)
                             it will have a default of 5.""")
+    parser.add_argument('-d', '--num_days', dest='num_days', type=int, default=None,
+                        help='The number of days we use from the experiment start, default is all of the days.')
     parser.add_argument('-e', '--experiment', dest='experiment', required=True, choices=['Exp0', 'Exp1', 'Exp2'],
                         help='The experiment we want to use.')
     parser.add_argument('-p', '--experiment_path', dest='experiment_path', type=str, default=None,
