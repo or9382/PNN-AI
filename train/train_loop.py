@@ -100,16 +100,15 @@ def test_model(test_config: TestConfig):
     tot_label_loss = 0.
     with torch.no_grad():
         for batch in test_loader:
-
-            for key in batch:
-                batch[key] = batch[key].to(test_config.device)
-
             labels = batch['label']
 
             x = batch.copy()
 
             del x['label']
             del x['plant']
+
+            for key in x:
+                x[key] = x[key].to(test_config.device)
 
             features: torch.Tensor = test_config.feat_ext(**x)
             label_out = test_config.label_cls(features)
@@ -157,10 +156,6 @@ def train_loop(test_config: TestConfig):
         tot_plant_loss = 0.
         tot_accuracy = 0.
         for i, batch in enumerate(test_config.train_loader, 1):
-
-            for key in batch:
-                batch[key] = batch[key].to(test_config.device)
-
             labels = batch['label']
             plants = batch['plant']
 
@@ -168,6 +163,9 @@ def train_loop(test_config: TestConfig):
 
             del x['label']
             del x['plant']
+
+            for key in x:
+                x[key] = x[key].to(test_config.device)
 
             test_config.label_opt.zero_grad()
             test_config.plant_opt.zero_grad()
