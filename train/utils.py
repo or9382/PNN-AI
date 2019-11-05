@@ -64,11 +64,19 @@ def get_levels_kernel(history_len: int):
         # effective history: 15
         kernel_size = 2
         num_levels = 3
-    elif 15 <= history_len <= 57:
+    elif 15 <= history_len <= 25:
+        # effective history: 25
+        kernel_size = 5
+        num_levels = 2
+    elif 25 <= history_len <= 57:
         # effective history: 57
         kernel_size = 5
         num_levels = 3
-    elif 57 <= history_len <= 121:
+    elif 57 <= history_len <= 91:
+        # effective history: 91
+        kernel_size = 4
+        num_levels = 4
+    elif 91 <= history_len <= 121:
         # effective history: 121
         kernel_size = 5
         num_levels = 4
