@@ -114,6 +114,7 @@ class PlantFeatureExtractor(nn.Module):
             self.mod_extractors[mod] = ModalityFeatureExtractor(**param_mods[mod])
             self.add_module(f'TCN_{mod}_feat_extractor', self.mod_extractors[mod])
 
+        #TODO make 128 into a model parameter
         self.final_feat_extractor = nn.Linear(128 * len(self.mods), embedding_size)
 
         self.device = None

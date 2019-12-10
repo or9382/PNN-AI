@@ -41,52 +41,6 @@ class TestConfig:
         self.epochs_without_improvement = 0
 
 
-# trans_lwir = T.Compose([
-#     T.Normalize([21361.], [481.]), T.ToPILImage(),
-#     RandomCrop(lwir_max_len, (206, 206)), RandomHorizontalFlip(lwir_max_len),
-#     RandomVerticalFlip(lwir_max_len), T.ToTensor()
-# ])
-#
-# trans_577 = T.Compose([
-#     T.Normalize([.00607], [.00773]), T.ToPILImage(),
-#     RandomCrop(vir_max_len, (412, 412)), RandomHorizontalFlip(vir_max_len),
-#     RandomVerticalFlip(vir_max_len), T.ToTensor()
-# ])
-#
-# trans_692 = T.Compose([
-#     T.Normalize([.02629], [.04364]), T.ToPILImage(),
-#     RandomCrop(vir_max_len, (412, 412)), RandomHorizontalFlip(vir_max_len),
-#     RandomVerticalFlip(vir_max_len), T.ToTensor()
-# ])
-#
-# trans_732 = T.Compose([
-#     T.Normalize([.01072], [.11680]), T.ToPILImage(),
-#     RandomCrop(vir_max_len, (412, 412)), RandomHorizontalFlip(vir_max_len),
-#     RandomVerticalFlip(vir_max_len), T.ToTensor()
-# ])
-#
-# trans_970 = T.Compose([
-#     T.Normalize([.00125], [.00095]), T.ToPILImage(),
-#     RandomCrop(vir_max_len, (412, 412)), RandomHorizontalFlip(vir_max_len),
-#     RandomVerticalFlip(vir_max_len), T.ToTensor()
-# ])
-#
-# trans_polar = T.Compose([
-#     T.Normalize([.05136], [.22331]), T.ToPILImage(),
-#     RandomCrop(vir_max_len, (412, 412)), RandomHorizontalFlip(vir_max_len),
-#     RandomVerticalFlip(vir_max_len), T.ToTensor()
-# ])
-#
-# modalities = {
-#     'lwir': {'max_len': lwir_max_len, 'skip': skip, 'transform': trans_lwir},
-#     '577nm': {'max_len': vir_max_len, 'transform': trans_577},
-#     '692nm': {'max_len': vir_max_len, 'transform': trans_692},
-#     '732nm': {'max_len': vir_max_len, 'transform': trans_732},
-#     '970nm': {'max_len': vir_max_len, 'transform': trans_970},
-#     'polar': {'max_len': vir_max_len, 'transform': trans_polar}
-# }
-
-
 def test_model(test_config: TestConfig):
     test_loader = data.DataLoader(test_config.test_set, batch_size=test_config.batch_size, num_workers=2, shuffle=True)
 
